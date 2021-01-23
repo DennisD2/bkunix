@@ -60,3 +60,5 @@ src/stand/hello
 src/sys/bkunix
 src/sys/bkunix.map
 src/sys/boot
+/.idea/
+cross/

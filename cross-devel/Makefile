@@ -1,6 +1,7 @@
 SUBDIR		= cc pcc c2 ccom cpp as ld
 
-DESTDIR		= /usr/local
+DESTDIR		= /home/dennis/src/bkunix/cross
+#DESTDIR		= /usr/local
 all:
 		for i in ${SUBDIR}; do $(MAKE) DESTDIR=$(DESTDIR) -C $$i; done
 

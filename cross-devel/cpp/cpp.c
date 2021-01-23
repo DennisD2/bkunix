@@ -388,7 +388,8 @@ cotoken(p)
 	if (state != BEG)
 		goto prevlf;
 	for (;;) {
-again:		while (! isspc(*p++));
+again:	while (! isspc(*p++))
+            ;
 
 		inp = p - 1;
 		switch (*inp) {
