@@ -1,4 +1,3 @@
-#
 /*
  *	Copyright 1975 Bell Telephone Laboratories Inc
  */
@@ -54,14 +53,14 @@ int hbuf[40];
 int *hp hbuf;
 */
 
-fdstrategy(abp)
+void fdstrategy(abp)
 struct buf *abp;
 {
 	register struct buf *bp;
 
 	bp = abp;
 	if (bp->b_blkno >= NFDBLK) {
-		bp->b_flags =| B_DONE | B_ERROR;
+		bp->b_flags |= (B_DONE | B_ERROR);
 		return;
 	}
 	bp->b_link = 0;
@@ -150,7 +149,7 @@ fdintr()
 			fdstart();
 			return;
 		}
-		bp->b_flags =| B_ERROR;
+		bp->b_flags |= B_ERROR;
 	}
 	fdtab.d_errcnt = 0;
 	if(bp->b_flags&B_READ) {
@@ -169,9 +168,9 @@ fdintr()
 			panic();
 		}
 	}
-	if((bp->b_wcount =+ 64) == 0) {
+	if((bp->b_wcount += 64) == 0) {
 		fdtab.d_actf = bp->b_link;
-		bp->b_flags =| B_DONE;
+		bp->b_flags |= B_DONE;
 #ifdef BGOPTION
 		wakeup(bp);
 #endif
@@ -180,7 +179,7 @@ fdintr()
 		if(++sect == 4) {
 			sect = 0;
 			bp->b_blkno++;
-			bp->b_addr =+ 512;
+			bp->b_addr += 512;
 		}
 	}
 	fdstart();

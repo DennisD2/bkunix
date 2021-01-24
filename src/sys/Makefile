@@ -44,8 +44,8 @@ HIBASE		= 0100000
 
 #CSRCS		+= dev/aedfd.c dev/decfd.c dev/perfd.c dev/rffd.c dev/kl.c dev/skyfd.c dev/tv.c
 #OBJS		+= dev/aedfd.o dev/decfd.o dev/perfd.o dev/rffd.o dev/kl.o dev/skyfd.o dev/tv.o
-#CSRCS		+= dev/decfd.c dev/kl.c
-#OBJS		+= dev/decfd.o dev/kl.o
+CSRCS		+= dev/decfd.c dev/kl.c
+OBJS		+= dev/decfd.o dev/kl.o
 
 all:		lsxunix boot
 		#@echo "Warning: For BK-0010/0011, size must be less than 040000"
