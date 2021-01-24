@@ -1,7 +1,8 @@
 #
 # Unix V6 filesystem library.
 #
-DESTDIR		= /usr/local/lib/pdp11
+#DESTDIR		= /usr/local/lib/pdp11
+DESTDIR		= /home/dennis/src/bkunix/cross/lib/pdp11
 
 # GNU compiler.
 #CC             = pdp11-gcc -Wall

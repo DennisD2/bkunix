@@ -42,13 +42,13 @@ OBJS		= nullsys.o nosys.o cerror.o _exit.o fork.o read.o write.o \
 # stdio
 SRCS		+= exit.c fprintf.c sprintf.c vfprintf.c flsbuf.c filbuf.c \
 		   fopen.c fdopen.c freopen.c rdwr.c clrerr.c fgetc.c fgets.c \
-	           fputc.c fputs.c fseek.c ftell.c getchar.c gets.c putchar.c \
-                   puts.c rew.c setbuf.c ungetc.c
+	       fputc.c fputs.c fseek.c ftell.c getchar.c gets.c putchar.c \
+           puts.c rew.c setbuf.c ungetc.c
 
 OBJS		+= exit.o fprintf.o sprintf.o vfprintf.o flsbuf.o filbuf.o \
 		   fopen.o fdopen.o freopen.o rdwr.o clrerr.o fgetc.o fgets.o \
-	           fputc.o fputs.o fseek.o ftell.o getchar.o gets.o putchar.o \
-                   puts.o rew.o setbuf.o ungetc.o
+	       fputc.o fputs.o fseek.o ftell.o getchar.o gets.o putchar.o \
+           puts.o rew.o setbuf.o ungetc.o
 
 all:		crt0.o libc.a
 

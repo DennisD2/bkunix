@@ -39,31 +39,40 @@ CPPFLAGS	= -I. -DKERNEL
 HIBASE		= 0120000
 
 # For BK-0011M model.
-CPPFLAGS	+= -DBK0011
+#CPPFLAGS	+= -DBK0011
 HIBASE		= 0100000
 
-CSRCS		+= dev/bktty.c dev/bkfd.c
-OBJS		+= bktty.o bkfd.o
+#CSRCS		+= dev/aedfd.c dev/decfd.c dev/perfd.c dev/rffd.c dev/kl.c dev/skyfd.c dev/tv.c
+#OBJS		+= dev/aedfd.o dev/decfd.o dev/perfd.o dev/rffd.o dev/kl.o dev/skyfd.o dev/tv.o
+#CSRCS		+= dev/decfd.c dev/kl.c
+#OBJS		+= dev/decfd.o dev/kl.o
 
-all:		bkunix boot
-		@echo "Warning: For BK-0010/0011, size must be less than 040000"
-		$(SIZE) bkunix boot
+all:		lsxunix boot
+		#@echo "Warning: For BK-0010/0011, size must be less than 040000"
+		$(SIZE) lsxunix boot
 
 clean:
-		rm -f *~ dev/*~ *.o *.s a.out bkunix boot bkunix.dis bkunix.map
+		rm -f *~ dev/*~ *.o *.s a.out lsxunix boot lsxunix.dis lsxunix.map
 
-bkunix:		$(OBJS)
+#bkunix:		$(OBJS)
+#		$(LD) $(LDFLAGS) -a$(HIBASE) -o $@ $(OBJS) $(LIBS)
+#		$(SIZE) $@
+#		pdp11-nm $@ > $@.map
+#		pdp11-disasm -a$(HIBASE) $@ > $@.dis
+
+lsxunix:	$(OBJS)
 		$(LD) $(LDFLAGS) -a$(HIBASE) -o $@ $(OBJS) $(LIBS)
 		$(SIZE) $@
 		pdp11-nm $@ > $@.map
 		pdp11-disasm -a$(HIBASE) $@ > $@.dis
 
+
 boot:		boot.o
 		mv $< $@
 		pdp11-strip $@
 
-install:	bkunix boot
-		$(FSUTIL) -b boot -a root.bkd bkunix
+install:	lsxunix boot
+		$(FSUTIL) -b boot -a root.bkd lsxunix
 
 count:		$(ASRCS) $(CSRCS)
 		wc $(ASRCS) $(CSRCS)

@@ -3,7 +3,7 @@ BIN		= bin/sh bin/ls bin/echo bin/cal bin/cp bin/date bin/mkdir \
 		  bin/sync bin/mv bin/rm bin/rmdir bin/stty bin/od bin/ed \
 		  bin/cat bin/ln bin/wc bin/pwd bin/df bin/mount bin/umount \
 		  bin/clock bin/halt
-SYS		= sys/bkunix sys/boot
+SYS		= sys/lsxunix sys/boot
 STAND		= stand/fdfmt
 
 DEV		= dev/tty0!c0:0 dev/fd0!b0:0 dev/fd1!b0:1
@@ -16,7 +16,7 @@ all:		$(DSK)
 build:		$(SYS) $(ETC) $(BIN) $(STAND)
 
 clean:
-		rm -f *~ $(DSK) bkunix
+		rm -f *~ $(DSK) lsxunix irps.log
 		$(MAKE) -C bin clean
 		$(MAKE) -C etc clean
 		$(MAKE) -C sys clean
@@ -28,9 +28,9 @@ root.bkd:	remake
 		pdp11-strip $(ETC) $(BIN)
 		dd bs=512 count=1600 < /dev/zero > $@
 		$(FSUTIL) -n -s753664 -bsys/boot $@
-		cp sys/bkunix stand/fdfmt .
-		$(FSUTIL) -a $@ bkunix fdfmt usr/ tmp/
-		@rm -f bkunix fdfmt
+		cp sys/lsxunix stand/fdfmt .
+		$(FSUTIL) -a $@ lsxunix fdfmt usr/ tmp/
+		@rm -f lsxunix fdfmt
 		$(FSUTIL) -a $@ etc/ $(ETC)
 		$(FSUTIL) -a $@ bin/ $(BIN)
 		$(FSUTIL) -a $@ dev/ $(DEV)
