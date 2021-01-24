@@ -1,7 +1,7 @@
 # LSX Unix revival
 
 # Extracting the disks
-Original disks are stored ass blobs in ```original-disks```.
+Original disks are stored as blobs in ```original-disks```.
 Their content can be extracted.
 
 Execute script ```extract-disks.sh```
