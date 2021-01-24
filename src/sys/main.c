@@ -74,7 +74,9 @@ void panic(s)
 	ttputs("panic: ");
 	ttputs(s);
 	ttputc('\n');
+#ifdef DBK0011
 	fdstop(999);
+#endif
 	for(;;);
 }
 

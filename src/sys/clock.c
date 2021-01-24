@@ -101,7 +101,9 @@ void uptime()
 	rem = cur;
 	if (quot) {
 		clock(quot);
+#ifdef DBK0011
 		fdstop(quot);
+#endif
 	}
 }
 
