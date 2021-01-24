@@ -13,8 +13,10 @@
 # Johnson's portable compiler.
 CC		= pdp11-pcc
 
+DESTDIR		= /home/dennis/src/bkunix/cross
+
 CFLAGS		= -O
-LIBS		= libstand.a -L/usr/local/lib/pdp11 -lcrt
+LIBS		= libstand.a -L$(DESTDIR)/lib/pdp11 -lcrt
 
 # Using ported AT&T UNIX utils.
 AS		= pdp11-asm

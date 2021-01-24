@@ -2,7 +2,8 @@
 # Compile standard C library.
 #
 #
-DESTDIR		= /usr/local/lib/pdp11
+DESTDIR		= /home/dennis/src/bkunix/cross/lib/pdp11
+#DESTDIR		= /usr/local/lib/pdp11
 CC		= pdp11-pcc
 AS		= pdp11-asm
 AR		= pdp11-ar

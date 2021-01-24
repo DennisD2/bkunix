@@ -1,6 +1,9 @@
 CC		= gcc -g
 CFLAGS		= -O -Wall
 DESTDIR		= /usr/local
+DESTDIR		= /home/dennis/src/bkunix/cross
+#DESTDIR		= /usr/local
+
 OBJS		= fsutil.o superblock.o block.c inode.o create.o check.o file.o
 PROG		= u6-fsutil
 
