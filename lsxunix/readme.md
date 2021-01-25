@@ -204,3 +204,140 @@ stat.o
 write.o
 cerror.o
 ```
+
+# Summary of examination of existing disks
+
+Source for crt0.o is missing. 
+
+Source for libc.a and liba.a is missing.
+
+Most commands seems to exist. Also the complete build
+toolchain seems to be there. There is no 'make', but shell scripts 
+show how to compile.
+
+## How to add a libc.a
+
+UNIX system calls are called via a trap, an processor exception
+
+See file xx```trap.c```.
+
+Inside the trap handling routine, system call id 
+and its parameters are extracted from stack and 
+the system call is called.
+
+See ```sysent.c``` , array ```sysent``` for the
+system call ids. ```fork``` has 0 parameters and id ```2```.
+```read``` has two parameters and id ```3```.
+```
+int	sysent[]
+{
+	0, &nullsys,			/*  0 = indir */
+	0, &rexit,			/*  1 = exit */
+	0, &fork,			/*  2 = fork */
+	2, &read,			/*  3 = read */
+	2, &write,			/*  4 = write */
+	2, &open,			/*  5 = open */
+	0, &close,			/*  6 = close */
+	0, &wait,			/*  7 = wait */
+	2, &creat,			/*  8 = creat */
+	2, &link,			/*  9 = link */
+	1, &unlink,			/* 10 = unlink */
+	2, &exec,			/* 11 = exec */
+	1, &chdir,			/* 12 = chdir */
+	0, &gtime,			/* 13 = time */
+	3, &mknod,			/* 14 = mknod */
+	2, &chmod,			/* 15 = chmod */
+	2, &nullsys,			/* 16 = chown */
+	1, &sbreak,			/* 17 = break */
+	2, &stat,			/* 18 = stat */
+	2, &seek,			/* 19 = seek */
+	0, &getpid,			/* 20 = getpid */
+	3, &nosys,			/* 21 = mount */
+	1, &nosys,			/* 22 = umount */
+	0, &nullsys,			/* 23 = setuid */
+	0, &getuid,			/* 24 = getuid */
+	0, &stime,			/* 25 = stime */
+	3, &nullsys,			/* 26 = ptrace */
+	0, &alarm,			/* 27 = alarm */
+	1, &fstat,			/* 28 = fstat */
+	0, &pause,			/* 29 = pause */
+	1, &nullsys,			/* 30 = smdate; inoperative */
+	1, &stty,			/* 31 = stty */
+	1, &gtty,			/* 32 = gtty */
+	0, &nosys,			/* 33 = x */
+	0, &nullsys,			/* 34 = nice */
+	0, &nosys,			/* 35 = sleep */
+	0, &sync,			/* 36 = sync */
+#ifdef BGOPTION
+	0, &kill,			/* 37 = kill */
+#endif
+#ifndef BGOPTION
+	1, &nosys,			/* 37 = kill */
+#endif
+	0, &nosys,			/* 38 = switch */
+	0, &nosys,			/* 39 = x */
+	0, &nosys,			/* 40 = x */
+	0, &dup,			/* 41 = dup */
+	0, &nosys,			/* 42 = pipe */
+	1, &nullsys,			/* 43 = times */
+	4, &nosys,			/* 44 = prof */
+	0, &nosys,			/* 45 = tiu */
+	0, &nullsys,			/* 46 = setgid */
+	0, &nullsys,			/* 47 = getgid */
+	2, &ssig,			/* 48 = sig */
+	0, &nosys,			/* 49 = x */
+	0, &nosys,			/* 50 = x */
+	0, &nosys,			/* 51 = x */
+	0, &nosys,			/* 52 = x */
+	0, &nosys,			/* 53 = x */
+	0, &nosys,			/* 54 = x */
+	0, &nosys,			/* 55 = x */
+	0, &nosys,			/* 56 = x */
+	0, &nosys,			/* 57 = x */
+	0, &nosys,			/* 58 = x */
+	0, &nosys,			/* 59 = x */
+	0, &nosys,			/* 60 = x */
+	0, &nosys,			/* 61 = x */
+	0, &nosys,			/* 62 = x */
+#ifdef BGOPTION
+	0, &bground			/* 63 = bground */
+#endif
+#ifndef BGOPTION
+	0, &nosys			/* 63 = x */
+#endif
+};
+```
+
+A libc.a implementation must somehow include that
+definition to know how to map system calls to the real OS.
+
+These values can be found e.g. in some libc.a implementation
+in header file ```syscall.h```:
+
+```
+#define SYS_exit	1	/* Terminate the calling process */
+#define SYS_fork	2	/* Create a new process */
+#define SYS_read	3	/* Read/write file */
+#define SYS_write	4
+...
+```
+
+# Create a new root disk
+
+```
+# root disk
+u6-fsutil -n -s256000 -bsys/boot1 -Bsys/boot2lo root.dsk
+cp sys/lsx .
+u6-fsutil -a root.dsk lsx usr/ tmp/
+rm -f lsx
+u6-fsutil -a root.dsk etc/ etc/init etc/glob etc/mknod etc/mkfs etc/fsck
+u6-fsutil -a root.dsk bin/ bin/sh bin/ls bin/echo bin/cal bin/cp bin/date bin/mkdir bin/sync bin/mv bin/rm bin/rmdir bin/stty bin/od bin/ed bin/cat bin/ln bin/wc bin/pwd bin/df bin/mount bin/umount
+u6-fsutil -a root.dsk dev/ dev/tty8!c0:0 dev/fd0!b0:0 dev/fd1!b0:1
+u6-fsutil -c root.dsk
+
+# usr disk
+u6-fsutil -n -s256000 usr.dsk
+u6-fsutil -c usr.dsk
+u6-fsutil -v root.dsk
+
+```
