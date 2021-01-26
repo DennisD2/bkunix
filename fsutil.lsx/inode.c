@@ -332,7 +332,6 @@ cloop:
 	    printf("dir.mode but not a dir\n");
 		return 0;
 	}
-	printf("here 2\n");
 
 	/* Gather up dir name into buffer. */
 	cp = &dbuf[0];
