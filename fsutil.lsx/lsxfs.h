@@ -79,6 +79,7 @@ int lsxfs_read_block (lsxfs_t *fs, unsigned short bnum, unsigned char *data);
 int lsxfs_block_free (lsxfs_t *fs, unsigned int bno);
 int lsxfs_indirect_block_free (lsxfs_t *fs, unsigned int bno);
 int lsxfs_double_indirect_block_free (lsxfs_t *fs, unsigned int bno);
+int lsxfs_block_alloc (lsxfs_t *fs, unsigned int *bno);
 
 int lsxfs_open (lsxfs_t *fs, const char *filename, int writable);
 void lsxfs_close (lsxfs_t *fs);

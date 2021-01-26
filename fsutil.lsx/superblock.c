@@ -24,7 +24,7 @@ int lsxfs_seek (lsxfs_t *fs, unsigned long offset)
 	unsigned long hw_address;
 
 	hw_address = deskew (offset);
-/*	printf ("seek %ld, block %ld - hw %d\n", offset, offset / 512, hw_address);*/
+    printf ("seek %ld, block %ld - hw %d\n", offset, offset / 512, hw_address);
 	if (lseek (fs->fd, hw_address, 0) < 0) {
 		if (verbose)
 			printf ("error seeking %ld, block %ld - hw %ld\n",
@@ -100,7 +100,8 @@ int lsxfs_write16 (lsxfs_t *fs, unsigned short val)
 
 	data[0] = val;
 	data[1] = val >> 8;
-	if (write (fs->fd, data, 2) != 2)
+    int written = write (fs->fd, data, 2);
+	if (written != 2)
 		return 0;
 	update_seek (fs, 2);
 	return 1;

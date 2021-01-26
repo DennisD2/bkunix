@@ -75,7 +75,9 @@ int lsxfs_inode_save (lsxfs_inode_t *inode)
 	unsigned long offset;
 	int i;
 
-	if (inode->number == 0 || inode->number > inode->fs->isize*16)
+	int t1 = inode->number == 0;
+	int t2 = inode->number > inode->fs->isize*16;
+	if (inode->number == 0 || inode->number > ((inode->fs)->isize)*16)
 		return 0;
 	offset = (inode->number + 31) * 32;
 
@@ -308,11 +310,13 @@ int lsxfs_inode_by_name (lsxfs_t *fs, lsxfs_inode_t *inode,
 		fprintf (stderr, "inode_open(): cannot get root\n");
 		return 0;
 	}
+
 	c = *name++;
 	while (c == '/')
 		c = *name++;
 	if (! c && op != 0) {
 		/* Cannot write or delete root directory. */
+		fprintf (stderr, "inode_open(): Cannot write or delete root directory\n");
 		return 0;
 	}
 cloop:
@@ -322,12 +326,13 @@ cloop:
 		*inode = dir;
 		return 1;
 	}
-
 	/* If there is another component,
 	 * inode must be a directory. */
 	if ((dir.mode & INODE_MODE_FMT) != INODE_MODE_FDIR) {
+	    printf("dir.mode but not a dir\n");
 		return 0;
 	}
+	printf("here 2\n");
 
 	/* Gather up dir name into buffer. */
 	cp = &dbuf[0];

@@ -246,7 +246,6 @@ void add_directory (lsxfs_t *fs, char *name)
 	lsxfs_inode_t dir, parent;
 	char buf [512], *p;
 
-
 	/* Open parent directory. */
 	strcpy (buf, name);
 	p = strrchr (buf, '/');
@@ -306,7 +305,7 @@ void add_file (lsxfs_t *fs, char *name)
 	int len;
 
 	if (verbose) {
-		printf ("%s\n", name);
+		printf ("Add: %s\n", name);
 	}
 	p = strrchr (name, '/');
 	if (p && p[1] == 0) {
@@ -350,7 +349,6 @@ int main (int argc, char **argv)
 	int i;
 	lsxfs_t fs;
 	lsxfs_inode_t inode;
-
 	argp_parse (&argp_parser, argc, argv, 0, &i, 0);
 	if (i != argc-1 || (extract + newfs + check > 1) ||
 	    (newfs && bytes < 5120)) {
@@ -388,10 +386,12 @@ int main (int argc, char **argv)
 		return 0;
 	}
 
-	if (! lsxfs_open (&fs, argv[i], 0)) {
-		fprintf (stderr, "%s: cannot open\n", argv[i]);
-		return -1;
-	}
+    /* Add or extract or info or boot update. */
+    if (! lsxfs_open (&fs, argv[i],
+                     (add != 0) || (boot_sector && boot_sector2))) {
+        fprintf (stderr, "%s: cannot open\n", argv[i]);
+        return -1;
+    }
 
 	if (extract) {
 		/* Extract all files to current directory. */
@@ -406,8 +406,9 @@ int main (int argc, char **argv)
 
     if (add) {
         /* Add files i+1..argc-1 to filesystem. */
-        while (++i < argc) {
+        while (i < argc) {
             add_file (&fs, argv[i]);
+            i++;
         }
         lsxfs_sync (&fs, 0);
         lsxfs_close (&fs);
