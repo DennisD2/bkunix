@@ -64,4 +64,4 @@ src/sys/boot
 cross/
 root.dsk
 irps.log
-fsutil.lsx/lsx-util
+fsutil/lsx-util
