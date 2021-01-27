@@ -1,5 +1,7 @@
 #!/bin/bash
-FSUTIL="../../../fsutil.lsx/lsx-util -v -v -v"
+FSUTIL=`pwd`/../fsutil/lsx-util -v -v -v"
+
+cd extracted-disks/root
 rm -f newroot.dsk
 ${FSUTIL} -n -s256000 newroot.dsk
 ${FSUTIL} -a newroot.dsk lsx usr/ tmp/
