@@ -29,9 +29,11 @@ int lsxfs_file_write (lsxfs_file_t *file, unsigned char *data, unsigned long byt
 {
 	if (! file->writable)
 		return 0;
-	if (! lsxfs_inode_write (&file->inode, file->offset, data, bytes)) {
-		fprintf (stderr, "inode %d: file write failed\n",
-			file->inode.number);
+    printf ("write %ld bytes to %s\n", bytes, "file");
+
+    if (! lsxfs_inode_write (&file->inode, file->offset, data, bytes)) {
+		fprintf (stderr, "inode %d: file write failed, %ld bytes @ offset=%ld\n",
+			file->inode.number, bytes, file->offset);
 		return 0;
 	}
 	file->offset += bytes;
