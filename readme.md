@@ -4,7 +4,7 @@ of Leonid Broukhis and Serge Vakulenko.
 Their original readme is [here](old_bkunix/README).
 
 I took their work (mainly cross compile environment)
-and started again with the old, original LSX tapes/drives that were found
+and started again with the old, original LSX tape/drive images that were found
 in Paul Zacharys Garage. These contained most parts of the original
 LSX Unix with sourcecode.
 
@@ -263,9 +263,9 @@ the system call is called. This crucial line is there:
 trap1(callp->call);
 ```
 and the object callp holds information (system call id, parameters)
-whhich is interpreted inside the trap1() trap handler.
+which is interpreted inside the trap1() trap handler.
 
-See ```sysent.c``` , array ```sysent``` for the
+See ```sysent.c``` , array ```sysent``` for the sixty-four
 system call ids. ```fork``` has e.g. 0 parameters and id ```2```.
 ```read``` has two parameters and id ```3```.
 ```
