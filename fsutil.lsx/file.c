@@ -29,7 +29,9 @@ int lsxfs_file_write (lsxfs_file_t *file, unsigned char *data, unsigned long byt
 {
 	if (! file->writable)
 		return 0;
-    printf ("write %ld bytes to %s\n", bytes, "file");
+    if (verbose > 3) {
+        printf("write %ld bytes to %s\n", bytes, "file");
+    }
 
     if (! lsxfs_inode_write (&file->inode, file->offset, data, bytes)) {
 		fprintf (stderr, "inode %d: file write failed, %ld bytes @ offset=%ld\n",

@@ -24,7 +24,9 @@ int lsxfs_seek (lsxfs_t *fs, unsigned long offset)
 	unsigned long hw_address;
 
 	hw_address = deskew (offset);
-    printf ("seek %ld, block %ld - hw %d\n", offset, offset / 512, hw_address);
+	if (verbose > 3) {
+        printf("seek %ld, block %ld - hw %d\n", offset, offset / 512, hw_address);
+    }
 	if (lseek (fs->fd, hw_address, 0) < 0) {
 		if (verbose)
 			printf ("error seeking %ld, block %ld - hw %ld\n",

@@ -1,5 +1,6 @@
 CC		= gcc
-CFLAGS		= -g -O -Wall -std=c89
+#CFLAGS		= -g -O -Wall -std=c89
+CFLAGS		= -g -Wall -std=c89
 OBJS		= superblock.o inode.o create.o check.o file.o block.o
 #OBJS		= lsxfs-open.o lsxfs-inode.o lsxfs-create.o lsxfs-check.o
 PROGS		= lsx-util

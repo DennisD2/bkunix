@@ -361,7 +361,9 @@ void add_file (lsxfs_t *fs, char *name)
 	}
 	for (;;) {
 		len = fread (data, 1, sizeof (data), fd);
-		printf ("read %d bytes from %s\n", len, name);
+        if (verbose > 3) {
+            printf("read %d bytes from %s\n", len, name);
+        }
 		if (len < 0)
 			perror (name);
 		if (len <= 0)
