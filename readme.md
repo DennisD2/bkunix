@@ -1,12 +1,30 @@
 # LSX Unix revival
+  This work is heavily based on the BKUnix effort
+of Leonid Broukhis and Serge Vakulenko.
+Their original readme is [here](README).
+
+I took their work (mainly cross compile environment)
+and started again with the old, original LSX tapes/drives that were found
+in Paul Zacharys Garage. These contained most parts of the original
+LSX Unix with sourcecode.
 
 # Extracting the disks
-Original disks are stored as blobs in ```original-disks```.
+All files used in this section can be found below 
+directory ```paul_zacharys_garage```.
+Original disks are there stored as blobs in ```original-disks```.
 Their content can be extracted.
+It is required that the tool ```lsx-util``` is built before
+trying the extraction process.
 
 Execute script ```extract-disks.sh```
 This creates a directory per disk in directory 
 ```extracted-disks```
+
+After having extracted the raw disks to file systems,
+the script is doing its best to rearrange the content of all 
+filesystems in a better organized file system.
+
+This new file system is created in directory ```src```.
 
 # Checking content of original disks
 

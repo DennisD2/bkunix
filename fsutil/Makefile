@@ -1,16 +1,22 @@
+DESTDIR		= ..
 CC		= gcc
+
 #CFLAGS		= -g -O -Wall -std=c89
 CFLAGS		= -g -Wall -std=c89
 OBJS		= superblock.o inode.o create.o check.o file.o block.o
-#OBJS		= lsxfs-open.o lsxfs-inode.o lsxfs-create.o lsxfs-check.o
 PROGS		= lsx-util
 LIBS		=
-#LIBS		= -largp
+
+INSTALLFLAGS =
+#  INSTALLFLAGS = -s
 
 .c.o:
 		$(CC) -c $(CFLAGS) $< -o $@
 
 all:		$(PROGS) rxboot rxboot2
+
+install:	$(PROGS)
+		install $(INSTALLFLAGS) $(PROGS) $(DESTDIR)/bin/$(PROGS)
 
 rxboot:		rxboot.s
 		pdp11-as $< -o $@
