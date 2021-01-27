@@ -60,6 +60,7 @@ int u6fs_file_write (u6fs_file_t *file, unsigned char *data, unsigned long bytes
 {
 	if (! file->writable)
 		return 0;
+    printf ("write %ld bytes to %s\n", bytes, "file");
 	if (! u6fs_inode_write (&file->inode, file->offset, data, bytes)) {
 		fprintf (stderr, "inode %d: file write failed\n",
 			file->inode.number);
