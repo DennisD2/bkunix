@@ -63,6 +63,40 @@ failed:		close (fd);
 	return 1;
 }
 
+int lsxfs_install_single_boot (lsxfs_t *fs, const char *filename)
+{
+    int fd, n;
+    unsigned char buf [512];
+
+    fd = open (filename, 0);
+    if (fd < 0)
+        return 0;
+
+    /* Check a.out header. */
+    if (read (fd, buf, 16) != 16 || ! (buf[0] == 7 && buf[1] == 1)) {
+        failed:		close (fd);
+        return 0;
+    }
+
+    /* Check .text+.data segment size. */
+    n = buf[2] + (buf[3] << 8) + buf[4] + (buf[5] << 8);
+    if (n > 512)
+        goto failed;
+    if (verbose)
+        printf ("Boot sector size: %d bytes\n", n);
+
+    if (read (fd, buf, n) != n)
+        goto failed;
+    close (fd);
+
+    if (! lsxfs_seek (fs, 0))
+        return 0;
+    if (! lsxfs_write (fs, buf, 512))
+        return 0;
+    return 1;
+}
+
+
 static int free_block (lsxfs_t *fs, unsigned int bno)
 {
 	int i;
