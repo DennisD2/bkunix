@@ -1,16 +1,27 @@
 # LSX Unix revival
   This work is heavily based on the BKUnix effort
 of Leonid Broukhis and Serge Vakulenko.
-Their original readme is [here](README).
+Their original readme is [here](old_bkunix/README).
 
 I took their work (mainly cross compile environment)
 and started again with the old, original LSX tapes/drives that were found
 in Paul Zacharys Garage. These contained most parts of the original
 LSX Unix with sourcecode.
 
+# Preparing lsx-util utility
+This utility is required to create and manage files containing
+disk drives that can be used by LSX UNIX in connection with
+SIMH.
+
+Build the tool:
+```shell
+cd fsutil
+make install
+```
+
 # Extracting the disks
 All files used in this section can be found below 
-directory ```paul_zacharys_garage```.
+directory ```0_pauvl_zacharys_garage```.
 Original disks are there stored as blobs in ```original-disks```.
 Their content can be extracted.
 It is required that the tool ```lsx-util``` is built before
@@ -20,11 +31,16 @@ Execute script ```extract-disks.sh```
 This creates a directory per disk in directory 
 ```extracted-disks```
 
+```shell
+cd 0_pavl_zacharys_garage
+./extract-disks.sh
+```
+
 After having extracted the raw disks to file systems,
 the script is doing its best to rearrange the content of all 
 filesystems in a better organized file system.
 
-This new file system is created in directory ```src```.
+This new file system is created in projects root directory ```src```.
 
 # Checking content of original disks
 
