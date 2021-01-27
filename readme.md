@@ -41,6 +41,7 @@ the script is doing its best to rearrange the content of all
 filesystems in a better organized file system.
 
 This new file system is created in projects root directory ```src```.
+All builds of the software will start from that directory.
 
 # Checking content of original disks
 
@@ -253,14 +254,19 @@ show how to compile.
 
 UNIX system calls are called via a trap, an processor exception
 
-See file xx```trap.c```.
+See file ```src/sys/trap.c```.
 
 Inside the trap handling routine, system call id 
 and its parameters are extracted from stack and 
-the system call is called.
+the system call is called. This crucial line is there:
+```c
+trap1(callp->call);
+```
+and the object callp holds information (system call id, parameters)
+whhich is interpreted inside the trap1() trap handler.
 
 See ```sysent.c``` , array ```sysent``` for the
-system call ids. ```fork``` has 0 parameters and id ```2```.
+system call ids. ```fork``` has e.g. 0 parameters and id ```2```.
 ```read``` has two parameters and id ```3```.
 ```
 int	sysent[]
@@ -357,6 +363,12 @@ in header file ```syscall.h```:
 ```
 
 # Create a new root disk
+First step to do is to try to create a new root disk with the 
+original files extracted from the original root disk.
+This shows that the ```lsx-util``` works as excpected.
+
+Later in the process we could provide additional content, 
+like new commands or a changed Kernel and create the root disk.
 
 ```
 # root disk
