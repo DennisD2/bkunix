@@ -928,7 +928,7 @@ For unknown reason, the original boot disk is not organized as expected.
 I could find the boot code content, but at location 6400 octal = 0xd00 = 3328 decimal
 ```
 0006360 047331 025757 145172 147616 114043 117212 032323 065313
-0006400 000240 005700 001403 052767 00002   0 000024 012701 177170
+0006400 000240 005700 001403 052767 000020 000024 012701 177170
 0006420 012702 177172 012704 000152 032711 000040 001775 012711
 0006440 000007 105711 001776 105714 001453 112412 105711 001776
 0006460 112412 105711 001776 100425 005711 100423 016700 000066
@@ -943,3 +943,29 @@ I could find the boot code content, but at location 6400 octal = 0xd00 = 3328 de
 So before that boot block, we have 3328 bytes of "something else".
 But what is this?
 Hm.
+
+From lsxfs_inode_get(), file inode.c, I get this info:
+ *Inodes are numbered starting from 1. 
+32 bytes per inode, 16 inodes per block.
+ Skip first and second blocks.
+
+Because a block has size 512, the first 1024 bytes are skipped.
+After some debugging and thinking, I understood that all these Inodes
+needs space the first payload block starts with - guess it -
+
+3382. Here is a verbose output showing this (with -v -v -v -v), There you
+      have it, check the 3328 for block 0:
+```asm
+../../fsutil/lsx-util -n -s256000 -b../../fsutil/rxboot n1 -v -v -v -v
+...
+Boot sector size: 120 bytes
+seek 0, block 0 - hw 3328
+seek 128, block 0 - hw 3712
+seek 256, block 0 - hw 4096
+```
+
+After knowing this, I could verify that the first bootstrap part (rxboot.o) is
+at correct place.
+
+
+
