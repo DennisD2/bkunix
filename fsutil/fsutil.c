@@ -67,8 +67,8 @@ static void print_help (char *progname)
 	printf ("  -s NUM, --size=NUM Size in bytes for created filesystem\n");
 	printf ("  -b FILE, --boot=FILE Boot sector, -B required if -S\n");
 	printf ("  -B FILE, --boot2=FILE Secondary boot sector, -b required\n");
-	/* printf ("  -F, --flat         Flat mode, no sector remapping (default)\n"); */
-	/* printf ("  -S, --shuffle      Shuffle mode, remap 128-byte sectors\n"); */
+	printf ("  -F, --flat         Flat mode, no sector remapping (default)\n");
+	printf ("  -S, --shuffle      Shuffle mode, remap 128-byte sectors\n");
 	printf ("  -v, --verbose      Print verbose information\n");
 	printf ("  -V, --version      Print version information and then exit\n");
 	printf ("  -h, --help         Print this message\n");

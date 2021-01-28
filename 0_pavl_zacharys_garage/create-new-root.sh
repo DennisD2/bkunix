@@ -1,9 +1,16 @@
 #!/bin/bash
-FSUTIL=`pwd`/../fsutil/lsx-util -v -v -v"
+BASEDIR=`pwd`
+FSUTIL="$BASEDIR/../fsutil/lsx-util"
+#FSUTIL="$BASEDIR/../fsutil/lsx-util -v -v -v"
 
 cd extracted-disks/root
 rm -f newroot.dsk
-${FSUTIL} -n -s256000 newroot.dsk
+
+#${FSUTIL} -n -s256000 newroot.dsk
+#${FSUTIL} -n -s256000 -bsys/boot1 -Bsys/boot2lo root.dsk
+${FSUTIL} -n -S -s256000 -b$BASEDIR/../fsutil/rxboot -B$BASEDIR/../fsutil/rxboot2 newroot.dsk
+#${FSUTIL} -n -s256000 -b"$BASEDIR/../fsutil/rxboot" newroot.dsk
+
 ${FSUTIL} -a newroot.dsk lsx usr/ tmp/
 ${FSUTIL} -a newroot.dsk etc/ etc/clri etc/cset etc/init etc/glob etc/mknod etc/mkfs #etc/fsck
 ${FSUTIL} -a newroot.dsk bin/ bin/sh bin/ls bin/cp bin/date bin/mkdir \
@@ -17,5 +24,5 @@ ${FSUTIL} -v newroot.dsk
 rm -rf z
 mkdir z
 cd z
-../$FSUTIL -x ../newroot.dsk
+$FSUTIL -x ../newroot.dsk
 
