@@ -1,5 +1,10 @@
 # LSX Unix revival
-  This work is heavily based on the BKUnix effort
+
+*LSX is a port of Sixth Edition Unix by Heinz Lycklama to the LSI-11, a cut-down version of the PDP-11 with a microprocessor CPU. It was feared lost as it was never released outside of Bell Labs.*
+
+LSX UNIX has some more info here: https://www.tuhs.org/cgi-bin/utree.pl?file=LSX
+
+This work is heavily based on the BKUnix effort
 of Leonid Broukhis and Serge Vakulenko.
 Their original readme is [here](old_bkunix/README).
 
