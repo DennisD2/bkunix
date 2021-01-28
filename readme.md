@@ -944,16 +944,17 @@ So before that boot block, we have 3328 bytes of "something else".
 But what is this?
 Hm.
 
-From lsxfs_inode_get(), file inode.c, I get this info:
- *Inodes are numbered starting from 1. 
+From lsxfs_inode_get(), file inode.c, I get this info: 
+*Inodes are numbered starting from 1. 
 32 bytes per inode, 16 inodes per block.
- Skip first and second blocks.
+Skip first and second blocks.*
 
 Because a block has size 512, the first 1024 bytes are skipped.
 After some debugging and thinking, I understood that all these Inodes
-needs space the first payload block starts with - guess it -
+needs space at the beginning of the disk image and 
+the first payload block starts with - guess it - 3328
 
-3382. Here is a verbose output showing this (with -v -v -v -v), There you
+Here is a verbose output showing this (with -v -v -v -v), There you
       have it, check the 3328 for block 0:
 ```asm
 ../../fsutil/lsx-util -n -s256000 -b../../fsutil/rxboot n1 -v -v -v -v
@@ -966,6 +967,8 @@ seek 256, block 0 - hw 4096
 
 After knowing this, I could verify that the first bootstrap part (rxboot.o) is
 at correct place.
+
+Next step is to veryfy the second bootstrap part (rxboot2.o).
 
 
 
