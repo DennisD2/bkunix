@@ -925,7 +925,7 @@ end:
 
 # Status
 For unknown reason, the original boot disk is not organized as expected.
-I could find the boot code content, but at location 6400 ocatl = 0xd00 = 3382 decimal
+I could find the boot code content, but at location 6400 octal = 0xd00 = 3328 decimal
 ```
 0006360 047331 025757 145172 147616 114043 117212 032323 065313
 0006400 000240 005700 001403 052767 00002   0 000024 012701 177170
