@@ -512,6 +512,9 @@ be found in the 'sector and track table' at the end of the
 code after label ```l_sctr``` (means *load_sectors* maybe). 
 Block addresses are (sector:track) 4:1, 7:1, 10:1, 21:0 and 24:0.
 
+In the 70ies, these cool long-bearded guys named a sector 'secter' 
+as can be seen from the listing above.
+
 The code of the second step can be found in file ```rxboot2.s```:
 
 ```asm
@@ -937,14 +940,14 @@ I could find the boot code content, but at location 6400 octal = 0xd00 = 3328 de
 0006540 000733 012711 040000 000000 000713 000404 000407 000412
 0006560 000025 000030 000000 000200 100607 017150 152123 127051
 0006600 000000 000000 000000 000000 000000 000000 000000 000000
-*
 ```
 
-So before that boot block, we have 3328 bytes of "something else".
+So preceeding the boot block, we have 3328 bytes of "something else".
 But what is this?
 Hm.
 
-From lsxfs_inode_get(), file inode.c, I get this info: 
+From ```lsxfs_inode_get()```, file ```inode.c```, I get this info:
+
 *Inodes are numbered starting from 1. 
 32 bytes per inode, 16 inodes per block.
 Skip first and second blocks.*
@@ -968,7 +971,7 @@ seek 256, block 0 - hw 4096
 After knowing this, I could verify that the first bootstrap part (rxboot.o) is
 at correct place.
 
-Next step is to veryfy the second bootstrap part (rxboot2.o).
+Next step is to verify the second bootstrap part (rxboot2.o).
 
 
 
