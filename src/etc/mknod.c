@@ -1,43 +1,42 @@
-/*
- * Build special file.
- *
- * This file is part of BKUNIX project, which is distributed
- * under the terms of the GNU General Public License (GPL).
- * See the accompanying file "COPYING" for more details.
- */
-#include <stdlib.h>
-#include <unistd.h>
-#include <sys/stat.h>
-
-int
 main(argc, argv)
-	int argc;
-	char **argv;
+int argc;
+char **argv;
 {
 	int m, a, b;
 
-	if (argc != 5) {
-usage:		write(1, "Usage: mknod name b/c major minor\n", 34);
-		return 1;
+	if(argc != 5) {
+		printf("arg count\n");
+		goto usage;
 	}
-	if (*argv[2] == 'b')
-		m = S_IFBLK;
-	else if (*argv[2] == 'c')
-		m = S_IFCHR;
-	else
+	if(*argv[2] == 'b')
+		m = 0160666; else
+	if(*argv[2] == 'c')
+		m = 0120666; else
 		goto usage;
-
-	a = atoi(argv[3]);
-	if (a < 0)
+	a = number(argv[3]);
+	if(a < 0)
 		goto usage;
-
-	b = atoi(argv[4]);
-	if (b < 0)
+	b = number(argv[4]);
+	if(b < 0)
 		goto usage;
+	if(mknod(argv[1], m, (a<<8)|b) < 0)
+		perror("mknod");
+	exit();
 
-	if (mknod(argv[1], m | 0666, (a << 8) | b) < 0) {
-		write(2, "mknod failed\n", 13);
-		return 1;
+usage:
+	printf("usage: mknod name b/c major minor\n");
+}
+
+number(s)
+char *s;
+{
+	int n, c;
+
+	n = 0;
+	while(c = *s++) {
+		if(c<'0' || c>'9')
+			return(-1);
+		n = n*10 + c-'0';
 	}
-	return 0;
+	return(n);
 }

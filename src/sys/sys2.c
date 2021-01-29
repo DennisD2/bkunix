@@ -1,10 +1,8 @@
+#
 /*
- * Copyright 1975 Bell Telephone Laboratories Inc
- *
- * This file is part of BKUNIX project, which is distributed
- * under the terms of the GNU General Public License (GPL).
- * See the accompanying file "COPYING" for more details.
+ *	Copyright 1975 Bell Telephone Laboratories Inc
  */
+
 #include "param.h"
 #include "systm.h"
 #include "user.h"
@@ -13,52 +11,8 @@
 #include "inode.h"
 
 /*
- * common code for read and write calls:
- * check permissions, set base, count, and offset,
- * and switch out to readi, writei, or pipe code.
- */
-static void
-rdwr(mode)
-	int mode;
-{
-	register struct file *fp;
-	register unsigned base;
-	register unsigned cnt_top;
-
-	fp = getf(u.u_ar0[R0]);
-	if(fp == NULL)
-		return;
-	if((fp->f_flag&mode) == 0) {
-		u.u_error = EBADF;
-		return;
-	}
-	base = u.u_arg[0];
-	if (bad_user_address(base))
-		return;
-	cnt_top = u.u_arg[1];
-	if (cnt_top == 0)
-		return;
-	u.u_base = (char*) base;
-	u.u_count = cnt_top;
-	cnt_top += base - 1;
-	if (bad_user_address(cnt_top) ||
-	    cnt_top < base) {
-		u.u_error = EFAULT;
-		return;
-	}
-	u.u_offset = fp->f_offset;
-	if(mode==FREAD)
-		readi(fp->f_inode);
-	else
-		writei(fp->f_inode);
-	fp->f_offset += u.u_arg[1] - u.u_count;
-	u.u_ar0[R0] = u.u_arg[1] - u.u_count;
-}
-
-/*
  * read system call
  */
-void
 read()
 {
 	rdwr(FREAD);
@@ -67,10 +21,70 @@ read()
 /*
  * write system call
  */
-void
 write()
 {
 	rdwr(FWRITE);
+}
+
+/*
+ * common code for read and write calls:
+ * check permissions, set base, count, and offset,
+ * and switch out to readi, writei, or pipe code.
+ */
+rdwr(mode)
+{
+	register *fp, m;
+
+	m = mode;
+	fp = getf(u.u_ar0[R0]);
+	if(fp == NULL)
+		return;
+	if((fp->f_flag&m) == 0) {
+		u.u_error = EBADF;
+		return;
+	}
+	u.u_base = u.u_arg[0];
+	u.u_count = u.u_arg[1];
+	u.u_offset[1] = fp->f_offset[1];
+	u.u_offset[0] = fp->f_offset[0];
+	if(m==FREAD)
+		readi(fp->f_inode); else
+		writei(fp->f_inode);
+	dpadd(fp->f_offset, u.u_arg[1]-u.u_count);
+	u.u_ar0[R0] = u.u_arg[1]-u.u_count;
+}
+
+/*
+ * open system call
+ */
+open()
+{
+	register *ip;
+
+	ip = namei(0);
+	if(ip == NULL)
+		return;
+	u.u_arg[1]++;
+	open1(ip, u.u_arg[1], 0);
+}
+
+/*
+ * creat system call
+ */
+creat()
+{
+	register *ip;
+
+	ip = namei(1);
+	if(ip == NULL) {
+		if(u.u_error)
+			return;
+		ip = maknode(u.u_arg[1]&07777);
+		if (ip==NULL)
+			return;
+		open1(ip, FWRITE, 2);
+	} else
+		open1(ip, FWRITE, 1);
 }
 
 /*
@@ -78,15 +92,11 @@ write()
  * Check permissions, allocate an open file structure,
  * and call the device open routine if any.
  */
-static void
 open1(ip, mode, trf)
-	struct inode *ip;
-	int mode;
-	int trf;
+int *ip;
 {
 	register struct file *fp;
-	register struct inode *rip;
-	register int m;
+	register *rip, m;
 
 	rip = ip;
 	m = mode;
@@ -103,8 +113,7 @@ open1(ip, mode, trf)
 		goto out;
 	if(trf)
 		itrunc(rip);
-	fp = falloc();
-	if(fp == NULL)
+	if ((fp = falloc()) == NULL)
 		goto out;
 	fp->f_flag = m&(FREAD|FWRITE);
 	fp->f_inode = rip;
@@ -117,52 +126,17 @@ open1(ip, mode, trf)
 		fp->f_count--;
 		return;
 	}
+
 out:
 	iput(rip);
 }
 
 /*
- * open system call
- */
-void
-open()
-{
-	register struct inode *ip;
-
-	ip = namei(0);
-	if(ip == NULL)
-		return;
-	u.u_arg[1]++;
-	open1(ip, u.u_arg[1], 0);
-}
-
-/*
- * creat system call
- */
-void
-creat()
-{
-	register struct inode *ip;
-
-	ip = namei(1);
-	if(ip == NULL) {
-		if(u.u_error)
-			return;
-		ip = maknode(u.u_arg[1]&07777);
-		if (ip==NULL)
-			return;
-		open1(ip, FWRITE, 2);
-	} else
-		open1(ip, FWRITE, 1);
-}
-
-/*
  * close system call
  */
-void
 close()
 {
-	register struct file *fp;
+	register *fp;
 
 	fp = getf(u.u_ar0[R0]);
 	if(fp == NULL)
@@ -172,42 +146,54 @@ close()
 }
 
 /*
- * lseek system call
+ * seek system call
  */
-void
-lseek()
+seek()
 {
-	long n;
-	register struct file *fp;
-	register int t;
+	int n[2];
+	register *fp, t;
 
 	fp = getf(u.u_ar0[R0]);
-	if (fp == NULL)
+	if(fp == NULL)
 		return;
-	t = u.u_arg[2];
-	n = *(long*) &u.u_arg[0];
-
-	switch (t) {
-	default:
-	case 0:
-		fp->f_offset = n;
-		break;
-	case 1:
-		fp->f_offset += n;
-		break;
-	case 2:
-		fp->f_offset = n + fp->f_inode->i_size;
-		break;
+	t = u.u_arg[1];
+	if(t > 2) {
+		n[1] = u.u_arg[0]<<9;
+		n[0] = u.u_arg[0]>>7;
+		if(t == 3)
+			n[0] =& 0777;
+	} else {
+		n[1] = u.u_arg[0];
+		n[0] = 0;
+		if(t!=0 && n[1]<0)
+			n[0] = -1;
 	}
+	switch(t) {
+
+	case 1:
+	case 4:
+		n[0] =+ fp->f_offset[0];
+		dpadd(n, fp->f_offset[1]);
+		break;
+
+	default:
+		n[0] =+ fp->f_inode->i_size0&0377;
+		dpadd(n, fp->f_inode->i_size1);
+
+	case 0:
+	case 3:
+		;
+	}
+	fp->f_offset[1] = n[1];
+	fp->f_offset[0] = n[0];
 }
 
 /*
  * link system call
  */
-void
 link()
 {
-	register struct inode *ip, *xp;
+	register *ip, *xp;
 
 	ip = namei(0);
 	if(ip == NULL)
@@ -216,7 +202,7 @@ link()
 		u.u_error = EMLINK;
 		goto out;
 	}
-	u.u_dirp = (char*) u.u_arg[1];
+	u.u_dirp = u.u_arg[1];
 	xp = namei(1);
 	if(xp != NULL) {
 		u.u_error = EEXIST;
@@ -231,7 +217,7 @@ link()
 	}
 	wdir(ip);
 	ip->i_nlink++;
-	ip->i_flag |= IUPD;
+	ip->i_flag =| IUPD;
 
 out:
 	iput(ip);
@@ -240,10 +226,9 @@ out:
 /*
  * mknod system call
  */
-void
 mknod()
 {
-	register struct inode *ip;
+	register *ip;
 
 	ip = namei(1);
 	if(ip != NULL) {
@@ -260,3 +245,30 @@ mknod()
 out:
 	iput(ip);
 }
+
+/*
+ * sleep system call
+ * not to be confused with the sleep internal routine.
+ */
+
+/*
+sslep()
+{
+	char *d[2];
+
+	spl7();
+	d[0] = time[0];
+	d[1] = time[1];
+	dpadd(d, u.u_ar0[R0]);
+
+	while(dpcmp(d[0], d[1], time[0], time[1]) > 0) {
+		if(dpcmp(tout[0], tout[1], time[0], time[1]) <= 0 ||
+		   dpcmp(tout[0], tout[1], d[0], d[1]) > 0) {
+			tout[0] = d[0];
+			tout[1] = d[1];
+		}
+		sleep(tout, PSLEP);
+	}
+	spl0();
+}
+*/

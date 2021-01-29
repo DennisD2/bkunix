@@ -1,10 +1,8 @@
+#
 /*
- * Copyright 1975 Bell Telephone Laboratories Inc
- *
- * This file is part of BKUNIX project, which is distributed
- * under the terms of the GNU General Public License (GPL).
- * See the accompanying file "COPYING" for more details.
+ *	Copyright 1975 Bell Telephone Laboratories Inc
  */
+
 #include "param.h"
 #include "user.h"
 #include "proc.h"
@@ -17,9 +15,8 @@
 #endif
 
 #ifdef BGOPTION
-int swflg, swwait;
+int swflg,swwait;
 #endif
-
 /*
  * Give up the processor till a wakeup occurs
  * on chan, at which time the process resumes execution.
@@ -30,18 +27,15 @@ int swflg, swwait;
  * premature return, and check that the reason for
  * sleeping has gone away.
  */
-void
 sleep(chan, pri)
-	int chan, pri;
 {
-	register struct proc *rp;
-	register int s;
+	register *rp, s;
 
 	rp = u.u_procp;
 	s = spl7();
 #ifdef BGOPTION
 	rp->p_stat = ((pri == PRIBIO) || (pri == TTOPRI)) ? SWAIT : SSLEEP;
-#endif
+#endif BGOPTION
 #ifndef BGOPTION
 	rp->p_stat = SSLEEP;
 #endif
@@ -65,7 +59,7 @@ sleep(chan, pri)
 #ifndef BGOPTION
 		idle();
 #endif
-	splx(s);
+	rstps(s);
 	return;
 
 	/*
@@ -83,9 +77,7 @@ psig:
 /*
  * Wake up process if sleeping on chan.
  */
-void
 wakeup(chan)
-	int chan;
 {
 	register struct proc *p;
 
@@ -105,9 +97,7 @@ wakeup(chan)
 /*
  * Set the process running;
  */
-void
 setrun(p)
-	struct proc *p;
 {
 	register struct proc *rp;
 
@@ -130,30 +120,28 @@ setrun(p)
  * (see above) is that this is the value that newproc's
  * caller in the new process sees.
  */
-int
 newproc()
 {
 	register struct proc *rpp;
-	register struct file **rip, *fp;
+	register *rip;
 
 	/*
 	 * make duplicate entries
 	 * where needed
 	 */
-	for(rip = &u.u_ofile[0]; rip < &u.u_ofile[NOFILE];) {
-		fp = *rip++;
-		if(fp != NULL)
-			fp->f_count++;
-	}
+
+	for(rip = &u.u_ofile[0]; rip < &u.u_ofile[NOFILE];)
+		if((rpp = *rip++) != NULL)
+			rpp->f_count++;
 	u.u_cdir->i_count++;
 	savu(u.u_ssav);	/* save state of parent */
 #ifdef BGOPTION
 	retu(u.u_rsav);
 #endif
-	rpp = u.u_procp;
-	rpp->p_stat = SIDL;
+	rip = u.u_procp;
+	rip->p_stat = SIDL;
 #ifdef BGOPTION
-	swap(B_WRITE, cpid);
+	swap(B_WRITE,cpid);
 #endif
 #ifndef BGOPTION
 	swap(B_WRITE);
@@ -184,11 +172,11 @@ swtch(aa)
 	s = spl7();
 	if(swflg) {
 		swwait = 1;
-		splx(s);
+		rstps(s);
 		return;
 	}
 	swflg = 1;
-	splx(s);
+	rstps(s);
 	a = aa;
 loop:	p = &proc[cpid];
 	if(p->p_stat == SSLEEP) {
@@ -217,11 +205,11 @@ loop:	p = &proc[cpid];
 	s = spl7();
 	if(swwait) {
 		swwait = 0;
-		splx(s);
+		rstps(s);
 		goto loop;
 	}
 	swflg = 0;
 	swwait = 0;
-	splx(s);
+	rstps(s);
 }
 #endif

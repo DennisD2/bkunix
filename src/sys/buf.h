@@ -1,12 +1,4 @@
 /*
- * This file is part of BKUNIX project, which is distributed
- * under the terms of the GNU General Public License (GPL).
- * See the accompanying file "COPYING" for more details.
- */
-#ifndef BUF_H
-#define BUF_H 1
-
-/*
  * A buffer is on the available list, and is liable
  * to be reassigned to another disk block, if and only
  * if it is not marked BUSY.  When a buffer is busy, the
@@ -24,13 +16,12 @@ struct buf
 	int	*b_link;		/* io driver link word */
 	int	b_wcount;		/* transfer count (usu. words) */
 	char	*b_addr;		/* low order core address */
-	unsigned int b_blkno;		/* block # on device */
+	char	*b_blkno;		/* block # on device */
 	char	b_dev;			/* device number */
 	char	b_error;		/* returned after I/O */
-};
+} buf[NBUF];
 
-extern struct buf buf[NBUF];
-extern struct buf *bufp[NBUF];		/* pointers to buffer descriptors */
+int	*bufp[NBUF];			/* pointers to buffer descriptors */
 
 /*
  * Each block device has a devtab, which contains private state stuff
@@ -60,19 +51,3 @@ struct devtab
 #define	B_ERROR	04	/* transaction aborted */
 #define	B_BUSY	010	/* not on av_forw/back list */
 #define	B_DELWRI 01000	/* don't write till block leaves available list */
-
-#ifdef KERNEL
-struct buf *alloc();
-struct buf *bread();
-struct buf *getblk();
-void free();
-void brelse();
-void bwrite();
-void bdwrite();
-void bflush();
-void iowait();
-void fdstrategy();
-void fdinit();
-#endif
-
-#endif /* BUF_H */

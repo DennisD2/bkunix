@@ -1,18 +1,14 @@
+#
 /*
- * Copyright 1975 Bell Telephone Laboratories Inc
- *
- * This file is part of BKUNIX project, which is distributed
- * under the terms of the GNU General Public License (GPL).
- * See the accompanying file "COPYING" for more details.
+ *	Copyright 1975 Bell Telephone Laboratories Inc
  */
+
 #include "param.h"
 #include "user.h"
 #include "filsys.h"
 #include "file.h"
 #include "inode.h"
 #include "reg.h"
-
-struct file file[NFILE];
 
 /*
  * Convert a user supplied
@@ -21,12 +17,9 @@ struct file file[NFILE];
  * Only task is to check range
  * of the descriptor.
  */
-struct file *
 getf(f)
-	int f;
 {
-	register struct file *fp;
-	register int rf;
+	register *fp, rf;
 
 	rf = f;
 	if(rf<0 || rf>=NOFILE)
@@ -45,11 +38,10 @@ bad:
  * file structure and call closei
  * on last closef.
  */
-void
 closef(fp)
-	struct file *fp;
+int *fp;
 {
-	register struct file *rfp;
+	register *rfp, *ip;
 
 	rfp = fp;
 	if(rfp->f_count <= 1)
@@ -68,11 +60,10 @@ closef(fp)
  * on every open and only on the last
  * close.
  */
-void
 closei(ip)
-	struct inode *ip;
+int *ip;
 {
-	register struct inode *rip;
+	register *rip;
 
 	rip = ip;
 	if(rip->i_count <= 1 && (rip->i_mode&IFMT) == IFCHR)
@@ -87,11 +78,10 @@ closei(ip)
  * Called on all sorts of opens
  * and also on mount.
  */
-void
 openi(ip)
-	struct inode *ip;
+int *ip;
 {
-	register struct inode *rip;
+	register *rip;
 
 	rip = ip;
 	if((rip->i_mode&IFMT) == IFCHR)
@@ -110,16 +100,14 @@ openi(ip)
  * at least one of the EXEC bits must
  * be on.
  */
-int
 access(aip, mode)
-	struct inode *aip;
+int *aip;
 {
-	register struct inode *ip;
-	register int m;
+	register *ip, m;
 
 	ip = aip;
 	m = mode;
-	if(m == IEXEC && (ip->i_mode &
+	if(m == IEXEC && (ip->i_mode & 
 		(IEXEC | (IEXEC>>3) | (IEXEC>>6))) == 0)
 			goto bad;
 	return(0);
@@ -129,12 +117,28 @@ bad:
 }
 
 /*
+ * Look up a pathname and test if
+ * the resultant inode is owned by the
+ * current user.
+ * If not, try for super-user.
+ * If permission is granted,
+ * return inode pointer.
+ */
+owner()
+{
+	register struct inode *ip;
+
+	if ((ip = namei(0)) == NULL)
+		return(NULL);
+	return(ip);
+}
+
+/*
  * Allocate a user file descriptor.
  */
-int
 ufalloc()
 {
-	register int i;
+	register i;
 
 	for (i=0; i<NOFILE; i++)
 		if (u.u_ofile[i] == NULL) {
@@ -154,20 +158,19 @@ ufalloc()
  * no file -- if there are no available
  * 	file structures.
  */
-struct file *
 falloc()
 {
 	register struct file *fp;
-	register int i;
+	register i;
 
-	i = ufalloc();
-	if (i < 0)
+	if ((i = ufalloc()) < 0)
 		return(NULL);
 	for (fp = &file[0]; fp < &file[NFILE]; fp++)
 		if (fp->f_count==0) {
 			u.u_ofile[i] = fp;
 			fp->f_count++;
-			fp->f_offset = 0;
+			fp->f_offset[0] = 0;
+			fp->f_offset[1] = 0;
 			return(fp);
 		}
 	u.u_error = ENFILE;

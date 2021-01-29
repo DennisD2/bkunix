@@ -1,12 +1,4 @@
 /*
- * This file is part of BKUNIX project, which is distributed
- * under the terms of the GNU General Public License (GPL).
- * See the accompanying file "COPYING" for more details.
- */
-#ifndef TTY_H
-#define TTY_H 1
-
-/*
  * A clist structure is the head
  * of a linked list queue of characters.
  * The characters are stored in 4-word
@@ -17,17 +9,8 @@
 struct clist
 {
 	int	c_cc;		/* character count */
-	char	*c_cf;		/* pointer to first block */
-	char	*c_cl;		/* pointer to last block */
-};
-
-/*
- * The actual structure of a clist block manipulated by
- * getc and putc (mch.s)
- */
-struct cblock {
-	struct	cblock *c_next;
-	char	c_info[6];
+	int	c_cf;		/* pointer to first block */
+	int	c_cl;		/* pointer to last block */
 };
 
 /*
@@ -47,19 +30,18 @@ struct tty
 	struct	clist t_outq;	/* output list to device */
 	char	t_delct;	/* number of delimiters in raw q */
 	char	t_col;		/* printing column of device */
-	char	t_flags;	/* see below */
-	char	t_modes;	/* open or not? */
+	char t_flags;		/* see below */
+	char t_modes;		/* open or not? */
 };
 
 #define	TTIPRI	10
 #define	TTOPRI	20
 
-#define	CERASE	010		/* ^H */
-#define	CBACKSP	030		/* <= */
+#define	CERASE	'#'		/* default special characters */
 #define	CEOT	004
-#define	CKILL	025		/* ^U */
-#define	CQUIT	034		/* ^\ */
-#define	CINTR	003		/* ^C */
+#define	CKILL	'@'
+#define	CQUIT	034		/* FS, cntl shift L */
+#define	CINTR	0177		/* DEL */
 
 /* flags */
 #define LCASE	04
@@ -77,10 +59,3 @@ struct tty
 /* Hardware bits */
 #define	DONE	0200
 #define	IENABLE	0100
-
-#ifdef KERNEL
-int getc();
-int putc();
-#endif
-
-#endif /* TTY_H */

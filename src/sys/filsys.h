@@ -1,12 +1,4 @@
 /*
- * This file is part of BKUNIX project, which is distributed
- * under the terms of the GNU General Public License (GPL).
- * See the accompanying file "COPYING" for more details.
- */
-#ifndef FILSYS_H
-#define FILSYS_H 1
-
-/*
  * Definition of the unix super block.
  * The root super block is allocated and
  * read in iinit/alloc.c. Subsequently
@@ -16,6 +8,23 @@
  * See alloc.c for general alloc/free
  * routines for free list and I list.
  */
+
+#ifdef	CONTIG
+
+struct filsys {
+	char	*s_isize;
+	char	*s_fsize;
+	char	s_fmod;
+	int	s_time[2];
+	char	s_imap[60];
+	char	s_bmap[302];
+	int	pad[70];
+};
+
+#endif
+
+#ifndef CONTIG
+
 struct	filsys
 {
 	int	s_isize;	/* size in blocks of I list */
@@ -28,12 +37,8 @@ struct	filsys
 	char	s_ilock;	/* lock during I list manipulation */
 	char	s_fmod;		/* super block modified flag */
 	char	s_ronly;	/* mounted read-only flag */
-	long	s_time;		/* current date of last update */
+	int	s_time[2];	/* current date of last update */
 	int	pad[50];
 };
 
-#ifdef KERNEL
-struct filsys *getfs();
 #endif
-
-#endif /* FILSYS_H */

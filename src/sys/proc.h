@@ -1,12 +1,4 @@
 /*
- * This file is part of BKUNIX project, which is distributed
- * under the terms of the GNU General Public License (GPL).
- * See the accompanying file "COPYING" for more details.
- */
-#ifndef PROC_H
-#define PROC_H 1
-
-/*
  * One structure allocated per active
  * process. It contains all data needed
  * about the process while the
@@ -20,9 +12,13 @@ struct	proc
 	char	p_sig;		/* signal number sent to this process */
 	int	p_wchan;	/* event process is awaiting */
 	int	p_clktim;	/* time to alarm clock signal */
-	int	p_size;		/* size of swap image in WORDS */
-};
-extern struct proc proc[];
+	int	p_size;		/* size of swap image in 32 word blocks */
+#ifdef BGOPTION
+} proc[NPROC+2];
+#endif
+#ifndef BGOPTION
+} proc[NPROC];
+#endif
 
 /* stat codes */
 #define	SSLEEP	1		/* awaiting an event */
@@ -40,13 +36,3 @@ struct swtab {
 	int sw_blk;
 } swtab[];
 #endif
-
-#ifdef KERNEL
-void signal();
-void psignal();
-void psig();
-void setrun();
-void pexit();
-#endif
-
-#endif /* PROC_H */

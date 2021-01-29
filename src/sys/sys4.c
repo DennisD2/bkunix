@@ -1,12 +1,12 @@
+#
+/*
+ *	Copyright 1975 Bell Telephone Laboratories Inc
+ */
+
 /*
  * Everything in this file is a routine implementing a system call.
- *
- * Copyright 1975 Bell Telephone Laboratories Inc
- *
- * This file is part of BKUNIX project, which is distributed
- * under the terms of the GNU General Public License (GPL).
- * See the accompanying file "COPYING" for more details.
  */
+
 #include "param.h"
 #include "user.h"
 #include "reg.h"
@@ -14,76 +14,69 @@
 #include "systm.h"
 #include "proc.h"
 
-void
 gtime()
 {
-#ifdef CLOCKOPT
-	uptime();
-#endif
-	u.u_ar0[R0] = ((int*) &time) [0];
-	u.u_ar0[R1] = ((int*) &time) [1];
+
+	u.u_ar0[R0] = time[0];
+	u.u_ar0[R1] = time[1];
 }
 
-void
 stime()
 {
-	((int*) &time) [0] = u.u_ar0[R0];
-	((int*) &time) [1] = u.u_ar0[R1];
-#ifdef CLOCKOPT
-	clkinit();
-#endif
+
+	time[0] = u.u_ar0[R0];
+	time[1] = u.u_ar0[R1];
+	wakeup(tout);
 }
 
-void
 getuid()
 {
+
 	u.u_ar0[R0] = 0;
 }
 
-void
 getpid()
 {
 	u.u_ar0[R0] = cpid;
 }
 
-void
 sync()
 {
+
 	update();
 }
 
 /*
  * Unlink system call.
  */
-void
 unlink()
 {
-	register struct inode *ip, *pp;
+	register *ip, *pp;
 
 	pp = namei(2);
 	if(pp == NULL)
 		return;
 	ip = iget(pp->i_dev, u.u_dent.u_ino);
 	if(ip == NULL)
-		goto out;
-	u.u_offset -= DIRSIZ+2;
-	u.u_base = (char*) &u.u_dent;
+		goto out1;
+	u.u_offset[1] =- DIRSIZ+2;
+	u.u_base = &u.u_dent;
 	u.u_count = DIRSIZ+2;
 	u.u_dent.u_ino = 0;
-	u.u_segflg++;
 	writei(pp);
-	u.u_segflg--;
 	ip->i_nlink--;
-	ip->i_flag |= IUPD;
-	iput(ip);
+	ip->i_flag =| IUPD;
+
 out:
+	iput(ip);
+out1:
 	iput(pp);
 }
 
-void
 chdir()
 {
-	register struct inode *ip;
+	register *ip;
+	extern uchar;
 
 	ip = namei(0);
 	if(ip == NULL)
@@ -100,24 +93,21 @@ chdir()
 	u.u_cdir = ip;
 }
 
-void
 chmod()
 {
-	register struct inode *ip;
+	register *ip;
 
-	ip = namei(0);
-	if (ip == NULL)
+	if ((ip = owner()) == NULL)
 		return;
-	ip->i_mode &= ~07777;
-	ip->i_mode |= u.u_arg[1]&07777;
-	ip->i_flag |= IUPD;
+	ip->i_mode =& ~07777;
+	ip->i_mode =| u.u_arg[1]&07777;
+	ip->i_flag =| IUPD;
 	iput(ip);
 }
 
-void
 ssig()
 {
-	register int a;
+	register a;
 
 	a = u.u_arg[0];
 	if(a<=0 || a>=NSIG) {
@@ -134,11 +124,9 @@ ssig()
 /*
  * alarm clock signal
  */
-void
 alarm()
 {
-	register int c;
-	register struct proc *p;
+	register c, *p;
 
 	p = u.u_procp;
 	c = p->p_clktim;
@@ -150,7 +138,7 @@ alarm()
  * indefinite wait.
  * no one should wakeup(&u)
  */
-void
+
 pause()
 {
 
@@ -161,8 +149,8 @@ pause()
 /*
  * become the background process
  */
+
 #ifdef BGOPTION
-void
 bground()
 {
 	register int *p1,*p2;
@@ -170,8 +158,8 @@ bground()
 		u.u_error = EAGAIN;
 		return;
 	}
-	p1 = (int*)&proc[NPROC];
-	p2 = (int*)u.u_procp;
+	p1 = &proc[NPROC];
+	p2 = u.u_procp;
 	while(p1 < &proc[NPROC+1]) *p1++ = *p2++;
 	spl7();
 	bgproc = &proc[NPROC];
@@ -180,7 +168,7 @@ bground()
 	spl0();
 }
 
-void kill()
+kill()
 {
 	if(bgproc == 0) {
 		u.u_error = ESRCH;

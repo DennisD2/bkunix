@@ -1,12 +1,4 @@
 /*
- * This file is part of BKUNIX project, which is distributed
- * under the terms of the GNU General Public License (GPL).
- * See the accompanying file "COPYING" for more details.
- */
-#ifndef USER_H
-#define USER_H 1
-
-/*
  * The user structure.
  * One allocated per process.
  * Contains all per process data
@@ -24,30 +16,37 @@ struct user
 	int	u_rsav[2];		/* save r5,r6 when exchanging stacks */
 #ifdef BGOPTION
 	int	*u_ar0;			/* address of users saved R0 */
+	int	u_cutime[2];		/* sum of childs' utimes */
+	int	u_cstime[2];		/* sum of childs' stimes */
 	int	u_signal[NSIG];		/* disposition of signals */
 #endif
-					/* rsav must be first in structure */
+#ifndef BGOPTION
+	int	u_fsav[25];		/* save fp registers */
+#endif
+					/* rsav and fsav must be first in structure */
 	char	u_segflg;		/* flag for IO; user or kernel space */
 	char	u_error;		/* return error code */
 	char	u_uid;			/* effective user id */
-	struct proc *u_procp;		/* pointer to proc structure */
+	char	u_gid;			/* effective group id */
+	char	u_ruid;			/* real user id */
+	char	u_rgid;			/* real group id */
+	int	u_procp;		/* pointer to proc structure */
 	char	*u_base;		/* base address for IO */
-	unsigned int u_count;		/* bytes remaining for IO */
-	long	u_offset;		/* offset in file for IO */
-	struct inode *u_cdir;		/* pointer to inode of current directory */
+	char	*u_count;		/* bytes remaining for IO */
+	char	*u_offset[2];		/* offset in file for IO */
+	int	*u_cdir;		/* pointer to inode of current directory */
 	char	u_dbuf[DIRSIZ];		/* current pathname component */
 	char	*u_dirp;		/* current pointer to inode */
 	struct	{			/* current directory entry */
 		int	u_ino;
 		char	u_name[DIRSIZ];
 	} u_dent;
-	struct inode *u_pdir;		/* inode of parent directory of dirp */
-	struct file *u_ofile[NOFILE];	/* pointers to file structures of open files */
+	int	*u_pdir;		/* inode of parent directory of dirp */
+	int	u_ofile[NOFILE];	/* pointers to file structures of open files */
 	int	u_arg[5];		/* arguments to current system call */
 	int	u_tsize;		/* text size (*64) */
 	int	u_dsize;		/* data size (*64) */
 	int	u_ssize;		/* stack size (*64) */
-	unsigned int u_top;		/* 040000 or 070000 */
 #ifndef BGOPTION
 	int	u_sep;			/* flag for I and D separation */
 #endif
@@ -55,6 +54,12 @@ struct user
 	int	u_ssav[2];		/* label variable for swapping */
 #ifndef BGOPTION
 	int	u_signal[NSIG];		/* disposition of signals */
+#endif
+	int	u_utime;		/* this process user time */
+	int	u_stime;		/* this process system time */
+#ifndef BGOPTION
+	int	u_cutime[2];		/* sum of childs' utimes */
+	int	u_cstime[2];		/* sum of childs' stimes */
 	int	*u_ar0;			/* address of users saved R0 */
 	int	u_prof[4];		/* profile arguments */
 #endif
@@ -65,8 +70,7 @@ struct user
 					 * extends from u + USIZE*64
 					 * backward not to reach here
 					 */
-};
-extern struct user u;
+} u;
 
 /* u_error codes */
 #define	EFAULT	106
@@ -101,5 +105,3 @@ extern struct user u;
 #define	EROFS	30
 #define	EMLINK	31
 #define	EPIPE	32
-
-#endif /* USER_H */

@@ -1,3 +1,4 @@
+#
 /*
  *	Copyright 1975 Bell Telephone Laboratories Inc
  */
@@ -27,22 +28,23 @@ struct klregs {
 	int klrbuf;
 	int kltcsr;
 	int kltbuf;
-};
+}
 
-void klopen()
+klopen()
 {
 	register struct tty *tp;
 	tp = &kl11[0];
 	if((tp->t_modes & TOPEN) == 0) {
-		tp->t_modes |= TOPEN;
+		tp->t_modes =| TOPEN;
 		tp->t_flags = ECHO|CRMOD|LCASE;
 	}
-	KLADDR->klrcsr |= IENABLE|DSRDY|RDRENB;
-	KLADDR->kltcsr |= IENABLE;
+	KLADDR->klrcsr =| IENABLE|DSRDY|RDRENB;
+	KLADDR->kltcsr =| IENABLE;
 }
 
-void klclose()
+klclose()
 {
+
 	wflushtty();
 }
 
@@ -61,20 +63,20 @@ klrint()
 	register int c;
 
 	c = KLADDR->klrbuf;
-	KLADDR->klrcsr |= RDRENB;
+	KLADDR->klrcsr =| RDRENB;
 	if ((c&0177)==0)
 		KLADDR->kltbuf = c;	/* hardware botch */
 	ttyinput(c);
 }
 
-void klsgtty(f)
+klsgtty(f)
 {
 	register struct tty *tp;
 	register int *a;
 
 	tp = &kl11[0];
 	a = u.u_arg[0];
-	a += 2;
+	a =+ 2;
 	wflushtty(tp);
 	if(f)
 		tp->t_flags = fuword(a);
@@ -92,7 +94,7 @@ void klsgtty(f)
  * sequence is replaced by the table value.  Mostly used for
  * upper-case only terminals.
  */
-char maptab[] =
+char	maptab[]
 {
 	000,000,000,000,004,000,000,000,
 	000,000,000,000,000,000,000,000,
@@ -116,10 +118,10 @@ char maptab[] =
  * The actual structure of a clist block manipulated by
  * getc and putc (mch.s)
  */
-/*struct cblock {
+struct cblock {
 	struct cblock *c_next;
 	char info[6];
-};*/
+};
 
 /* The character lists-- space for 6*NCLIST characters */
 struct cblock cfree[NCLIST];
@@ -147,7 +149,7 @@ wflushtty()
  * Initialize clist by freeing all character blocks, then count
  * number of character devices. (Once-only routine)
  */
-void cinit()
+cinit()
 {
 	register int ccp;
 	register struct cblock *cp;
@@ -249,7 +251,7 @@ ttyinput(ac)
 	tp = kl11;
 	c = ac;
 	flags = tp->t_flags;
-	c &= 0177;
+	c =& 0177;
 	if(flags & CRMOD) if(c == '\r')
 		c = '\n';
 	if (c==CQUIT || c==CINTR) {
@@ -263,7 +265,7 @@ ttyinput(ac)
 	}
 	if(flags & LCASE)
 		if(c>='A' && c<='Z')
-			c += 'a'-'A';
+			c =+ 'a'-'A';
 	putc(c, &tp->t_rawq);
 	if (c=='\n' || c==004) {
 		wakeup(&tp->t_rawq);
@@ -313,7 +315,7 @@ ttyoutput(ac)
 				break;
 			}
 		if ('a'<=c && c<='z')
-			c += 'A' - 'a';
+			c =+ 'A' - 'a';
 	}
 
 	/*
@@ -384,7 +386,7 @@ ttstart()
  * The pc is backed up for the duration of this call.
  * In case of a caught interrupt, an RTI will re-execute.
  */
-void ttread()
+ttread()
 {
 	register struct tty *tp;
 
@@ -397,7 +399,7 @@ void ttread()
  * Called from the device's write routine after it has
  * calculated the tty-structure given as argument.
  */
-void ttwrite()
+ttwrite()
 {
 	register struct tty *tp;
 	register int c;

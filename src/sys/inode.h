@@ -1,12 +1,4 @@
 /*
- * This file is part of BKUNIX project, which is distributed
- * under the terms of the GNU General Public License (GPL).
- * See the accompanying file "COPYING" for more details.
- */
-#ifndef INODE_H
-#define INODE_H 1
-
-/*
  * The I node is the focus of all
  * file activity in unix. There is a unique
  * inode allocated for each active file,
@@ -25,10 +17,11 @@ struct	inode
 	int	i_mode;
 	char	i_nlink;	/* directory entries */
 	char	i_uid;		/* owner */
-	long	i_size;	/* most significant of size */
+	char	i_gid;		/* group of owner */
+	char	i_size0;	/* most significant of size */
+	char	*i_size1;	/* least sig */
 	int	i_addr[8];	/* device addresses constituting file */
-};
-extern struct inode inode[NINODE];
+} inode[NINODE];
 
 /* flags */
 #define	IUPD	02		/* inode has been modified */
@@ -46,23 +39,3 @@ extern struct inode inode[NINODE];
 #define	IREAD	0400		/* read, write, execute permissions */
 #define	IWRITE	0200
 #define	IEXEC	0100
-
-#ifdef KERNEL
-struct inode *ialloc();
-struct inode *namei();
-struct inode *iget();
-struct inode *maknode();
-void ifree();
-void openi();
-void closei();
-void iput();
-void iupdat();
-void itrunc();
-void readi();
-void writei();
-void wdir();
-int bmap();
-int access();
-#endif
-
-#endif /* INODE_H */

@@ -15,20 +15,20 @@ advanc:
 	jsr	pc,readop
 1:
 	mov	r4,r0
-	jsr	r5,betwen; 0; 0177
+	jsr	r5,betwen; 0; 177
 		br .+4
 	br	7f
 	movb	(r4),r0
 	mov	2(r4),r1
 	br	oprand
 7:
-	cmp	r4,$0141
+	cmp	r4,$141
 	blo	1f
-	cmp	r4,$0141+10
+	cmp	r4,$141+10.
 	bhis	2f
-	movb	curfbr-0141(r4),r0
+	movb	curfbr-141(r4),r0
 	asl	r4
-	mov	curfb-[2*0141](r4),r2
+	mov	curfb-[2*141](r4),r2
 	bpl	oprand
 	jsr	r5,error; 'f
 	br	oprand
@@ -134,7 +134,7 @@ exrsh:
 	ror	r2
 exlsh:
 	jsr	r5,combin; 0
-	ash	r1,r2
+	als	r1,r2
 	br	eoprnd
 
 exmod:
@@ -142,7 +142,7 @@ exmod:
 	mov	r1,-(sp)
 	mov	r2,r1
 	clr	r0
-	div	(sp)+,r0
+	dvd	(sp)+,r0
 	mov	r1,r2
 	br	eoprnd
 
@@ -169,7 +169,7 @@ exor:
 
 exmul:
 	jsr	r5,combin; 0
-	mul	r2,r1
+	mpy	r2,r1
 	mov	r1,r2
 	br	eoprnd
 
@@ -178,7 +178,7 @@ exdiv:
 	mov	r1,-(sp)
 	mov	r2,r1
 	clr	r0
-	div	(sp)+,r0
+	dvd	(sp)+,r0
 	mov	r0,r2
 	br	eoprnd
 
@@ -195,9 +195,9 @@ eoprnd:
 combin:
 	mov	r0,-(sp)
 	bis	r3,(sp)
-	bic	$!040,(sp)
-	bic	$!037,r0
-	bic	$!037,r3
+	bic	$!40,(sp)
+	bic	$!37,r0
+	bic	$!37,r3
 	cmp	r0,r3
 	ble	1f
 	mov	r0,-(sp)

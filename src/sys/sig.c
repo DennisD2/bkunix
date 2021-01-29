@@ -1,10 +1,8 @@
+#
 /*
- * Copyright 1975 Bell Telephone Laboratories Inc
- *
- * This file is part of BKUNIX project, which is distributed
- * under the terms of the GNU General Public License (GPL).
- * See the accompanying file "COPYING" for more details.
+ *	Copyright 1975 Bell Telephone Laboratories Inc
  */
+
 #include "param.h"
 #include "systm.h"
 #include "user.h"
@@ -13,15 +11,21 @@
 #include "reg.h"
 
 /*
+ * Structure to access an array of integers.
+ */
+struct
+{
+	int	inta[];
+};
+
+/*
  * Send the specified signal to
  * all processes with 'tp' as its
  * controlling teletype.
  * Called by tty.c for quits and
  * interrupts.
  */
-void
 signal(sig)
-	int sig;
 {
 	register struct proc *p;
 
@@ -33,12 +37,12 @@ signal(sig)
  * Send the specified signal to
  * the specified process.
  */
-void
 psignal(p, sig)
-	struct proc *p;
-	int sig;
+int *p;
+char *sig;
 {
-	register struct proc *rp;
+	register *rp;
+	extern user;
 
 	if(sig >= NSIG)
 		return;
@@ -61,58 +65,18 @@ psignal(p, sig)
  * a flag that asks the process to
  * do something to itself.
  */
-int
 issig()
 {
-	register int n;
+	register n;
 	register struct proc *p;
 
 	p = u.u_procp;
-	n = p->p_sig;
-	if(n != 0) {
+	if(n = p->p_sig) {
 		if((u.u_signal[n]&1) == 0)
 			return(n);
 	}
 	return(0);
 }
-
-#ifdef COREOPT
-/*
- * Create a core image on the file "core"
- * If you are looking for protection glitches,
- * there are probably a wealth of them here
- * when this occurs to a suid command.
- *
- * It writes USIZE block of the
- * user.h area followed by the entire
- * data+stack segments.
- */
-int
-core()
-{
-	register struct inode *ip;
-
-	u.u_error = 0;
-	u.u_dirp = "core";
-	u.u_segflg++;
-	ip = namei(1);
-	if(ip == NULL) {
-		if(u.u_error)
-			return(0);
-		ip = maknode(0666);
-		if (ip == NULL)
-			return(0);
-	}
-	itrunc(ip);
-	u.u_offset = 0;
-	u.u_base = (char*) &u;
-	u.u_count = TOPUSR-BOTUSR+USIZE;
-	writei(ip);
-	iput(ip);
-	u.u_segflg--;
-	return(u.u_error==0);
-}
-#endif
 
 /*
  * Perform the action specified by
@@ -121,27 +85,23 @@ core()
  *	if(issig())
  *		psig();
  */
-void
 psig()
 {
-	register int n, p;
-	register struct proc *rp;
+	register n, p;
+	register *rp;
 
 	rp = u.u_procp;
 	n = rp->p_sig;
 	rp->p_sig = 0;
-	p = u.u_signal[n];
-	if(p != 0) {
+	if((p=u.u_signal[n]) != 0) {
 		u.u_error = 0;
 		if(n != SIGINS)
 			u.u_signal[n] = 0;
 		n = u.u_ar0[R6] - 4;
-		if (! bad_user_address ((char*) n)) {
-			*(int*)(n+2) = u.u_ar0[RPS];
-			*(int*)n = u.u_ar0[R7];
-		}
+		suword(n+2, u.u_ar0[RPS]);
+		suword(n, u.u_ar0[R7]);
 		u.u_ar0[R6] = n;
-		u.u_ar0[RPS] &= ~TBIT;
+		u.u_ar0[RPS] =& ~TBIT;
 		u.u_ar0[R7] = p;
 		return;
 	}
@@ -157,11 +117,48 @@ psig()
 	case SIGSEG:
 	case SIGSYS:
 		u.u_arg[0] = n;
-#ifdef COREOPT
 		if(core())
-			n += 0200;
-#endif
+			n =+ 0200;
 	}
 	u.u_arg[0] = (u.u_ar0[R0]<<8) | n;
-	pexit();
+	exit();
+}
+
+/*
+ * Create a core image on the file "core"
+ * If you are looking for protection glitches,
+ * there are probably a wealth of them here
+ * when this occurs to a suid command.
+ *
+ * It writes USIZE block of the
+ * user.h area followed by the entire
+ * data+stack segments.
+ */
+core()
+{
+	register s, *ip;
+
+	u.u_error = 0;
+	u.u_dirp = "core";
+	ip = namei(1);
+	if(ip == NULL) {
+		if(u.u_error)
+			return(0);
+		ip = maknode(0666);
+		if (ip==NULL)
+			return(0);
+	}
+	itrunc(ip);
+	u.u_offset[0] = 0;
+	u.u_offset[1] = 0;
+/*
+	u.u_base = &u;
+	u.u_count = USIZE*64;
+	writei(ip);
+*/
+	u.u_base = &u;
+	u.u_count = (UCORE+USIZE)*64;
+	writei(ip);
+	iput(ip);
+	return(u.u_error==0);
 }

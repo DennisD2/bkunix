@@ -16,7 +16,7 @@ advanc:
 	jsr	pc,readop
 1:
 	mov	r4,r0
-	jsr	r5,betwen; 0; 0177
+	jsr	r5,betwen; 0; 177
 		br .+4
 	br	7f
 	movb	(r4),r0
@@ -26,7 +26,7 @@ advanc:
 	beq	1f
 	jsr	r5,error; 'u
 1:
-	cmp	r0,$040
+	cmp	r0,$40
 	bne	1f
 	mov	r4,xsymbol
 	clr	r1
@@ -35,10 +35,10 @@ advanc:
 	mov	2(r4),r1
 	br	oprand
 7:
-	cmp	r4,$0141
+	cmp	r4,$141
 	blo	1f
 	asl	r4
-	mov	curfb-[2*0141](r4),r0
+	mov	curfb-[2*141](r4),r0
 	mov	2(r0),r1
 	movb	(r0),r0
 	br	oprand
@@ -70,7 +70,7 @@ esw1:
 	1;	exnum
 	2;	exnum1
 	'!;	binop
-	0200;	0
+	200;	0
 
 binop:
 	cmpb	(sp),$'+
@@ -128,7 +128,7 @@ exsw2:
 	'%; exmod
 	'^; excmbin
 	'!; exnot
-	0200;  0
+	200;  0
 
 excmbin:
 	mov	r0,r3
@@ -142,7 +142,7 @@ exrsh:
 	ror	r2
 exlsh:
 	jsr	r5,combin; relte2
-	ash	r1,r2
+	als	r1,r2
 	br	eoprnd
 
 exmod:
@@ -150,7 +150,7 @@ exmod:
 	mov	r3,r0
 	mov	r2,r3
 	clr	r2
-	div	r1,r2
+	dvd	r1,r2
 	mov	r3,r2
 	mov	r0,r3
 	br	eoprnd
@@ -178,7 +178,7 @@ exor:
 
 exmul:
 	jsr	r5,combin; relte2
-	mul	r2,r1
+	mpy	r2,r1
 	mov	r1,r2
 	br	eoprnd
 
@@ -187,7 +187,7 @@ exdiv:
 	mov	r3,r0
 	mov	r2,r3
 	clr	r2
-	div	r1,r2
+	dvd	r1,r2
 	mov	r0,r3
 	br	eoprnd
 
@@ -206,9 +206,9 @@ combin:
 	bne	combin1
 	mov	r0,-(sp)
 	bis	r3,(sp)
-	bic	$!040,(sp)
-	bic	$!037,r0
-	bic	$!037,r3
+	bic	$!40,(sp)
+	bic	$!37,r0
+	bic	$!37,r3
 	cmp	r0,r3
 	ble	1f
 	mov	r0,-(sp)
@@ -234,7 +234,7 @@ combin1:
 	clr	maxtyp
 	jsr	pc,maprel
 	mov	r0,r1
-	mul	$6,r1
+	mpy	$6,r1
 	mov	r3,r0
 	jsr	pc,maprel
 	add	(r5)+,r0
@@ -251,12 +251,12 @@ combin1:
 	rts	r5
 
 maprel:
-	cmp	r0,$040
+	cmp	r0,$40
 	bne	1f
 	mov	$5,r0
 	rts	pc
 1:
-	bic	$!037,r0
+	bic	$!37,r0
 	cmp	r0,maxtyp
 	blos	1f
 	mov	r0,maxtyp
@@ -271,15 +271,15 @@ X = -2
 M = -1
 reltp2:
 	.byte 0, 0, 0, 0, 0, 0
-	.byte 0, M, 2, 3, 4,040
+	.byte 0, M, 2, 3, 4,40
 	.byte 0, 2, X, X, X, X
 	.byte 0, 3, X, X, X, X
 	.byte 0, 4, X, X, X, X
-	.byte 0,040, X, X, X, X
+	.byte 0,40, X, X, X, X
 
 reltm2:
 	.byte 0, 0, 0, 0, 0, 0
-	.byte 0, M, 2, 3, 4,040
+	.byte 0, M, 2, 3, 4,40
 	.byte 0, X, 1, X, X, X
 	.byte 0, X, X, 1, X, X
 	.byte 0, X, X, X, 1, X

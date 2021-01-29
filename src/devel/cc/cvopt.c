@@ -1,7 +1,8 @@
 int	nofloat;
 int	peekc;
+int	obuf[259];
 int	tabflg;
-int	labno = 1;
+int	labno	1;
 
 main(argc, argv)
 char **argv;
@@ -38,24 +39,20 @@ char **argv;
 */
 
 	auto c,snlflg,nlflg,t,smode,m,ssmode;
-	/* extern fin; */
+	extern fin;
 
 	smode = nlflg = snlflg = ssmode = 0;
-	if (argc>1) {
-		close(0);
-		if (open(argv[1], 0) != 0) {
-			printf("?\n");
+	if (argc>1)
+		if ((fin = open(argv[1], 0)) < 0) {
+			putchar('?\n');
 			return;
 		}
-	}
-	if (argc>2) {
-		if ((c = creat(argv[2], 0666)) < 0) {
-			printf("?\n");
+	obuf[0] = 1;
+	if (argc>2) 
+		if ((obuf[0] = creat(argv[2], 0666)) < 0) {
+			putchar('?\n');
 			return;
 		}
-		dup2(c, 1);
-		close(c);
-	}
 loop:
 	c = getc();
 	if (c!='\n' && c!='\t') nlflg = 0;
@@ -67,20 +64,21 @@ loop:
 
 	case '\0':
 		printf(".text; 0\n");
+		fflush(obuf);
 		return;
 
 	case ':':
 		if (!smode)
 			printf("=.+2; 0"); else
-			putchr(':');
+			putchar(':');
 		goto loop;
 
 	case 'A':
 		if ((c=getc())=='1' || c=='2') {
-			putchr(c+'A'-'1');
+			putchar(c+'A'-'1');
 			goto loop;
 		}
-		putchr('O');
+		putchar('O');
 		peekc = c;
 		goto loop;
 
@@ -88,50 +86,50 @@ loop:
 		switch (getc()) {
 
 		case '1':
-			putchr('C');
+			putchar('C');
 			goto loop;
 
 		case '2':
-			putchr('D');
+			putchar('D');
 			goto loop;
 
 		case 'E':
-			putchr('L');
+			putchar('L');
 			goto loop;
 
 		case 'F':
-			putchr('P');
+			putchar('P');
 			goto loop;
 		}
-		putchr('?');
+		putchar('?');
 		goto loop;
 
 	case 'C':
-		putchr(getc()+'E'-'1');
+		putchar(getc()+'E'-'1');
 		goto loop;
 
 	case 'F':
-		putchr('G');
+		putchar('G');
 		goto subtre;
 
 	case 'R':
 		if ((c=getc()) == '1')
-		putchr('J'); else {
-			putchr('I');
+		putchar('J'); else {
+			putchar('I');
 			peekc = c;
 		}
 		goto loop;
 
 	case 'H':
-		putchr('H');
+		putchar('H');
 		goto subtre;
 
 	case 'I':
-		putchr('M');
+		putchar('M');
 		goto loop;
 
 	case 'S':
-		putchr('K');
+		putchar('K');
 subtre:
 		snlflg = 1;
 		t = 'A';
@@ -143,29 +141,29 @@ l1:
 			goto l1;
 
 		case 'S':
-			t += 2;
+			t =+ 2;
 			goto l1;
 
 		case 'C':
-			t += 4;
+			t =+ 4;
 			goto l1;
 
 		case '1':
-			t += 8;
+			t =+ 8;
 			goto l1;
 
 		case '2':
-			t += 16;
+			t =+ 16;
 			goto l1;
 		}
 		peekc = c;
-		putchr(t);
+		putchar(t);
 		goto loop;
 
 	case '#':
 		if(getc()=='1')
-			putchr('#'); else
-			putchr('"');
+			putchar('#'); else
+			putchar('"');
 		goto loop;
 
 	case '%':
@@ -176,7 +174,7 @@ l1:
 				peekc = 0;
 				printf(".data;");
 				while((c=getc())!=']')
-					putchr(c);
+					putchar(c);
 				getc();
 				printf(";.text;");
 				goto loop;
@@ -194,7 +192,7 @@ loop1:
 			goto pf;
 
 		case ',':
-			putchr(';');
+			putchar(';');
 			goto loop1;
 
 		case 'i':
@@ -231,14 +229,14 @@ loop1:
 			m = 63;
 pf:
 			if ((c=getc())=='*')
-				m += 0100; else
+				m =+ 0100; else
 				peekc = c;
-			printf(".byte 0%o,0%o", m, t);
+			printf(".byte %o,%o", m, t);
 			goto loop1;
 		case '[':
 			printf("L%d=", labno++);
 			while ((c=getc())!=']')
-				putchr(c);
+				putchar(c);
 			ssmode = 0;
 			smode = 0;
 			goto loop;
@@ -250,7 +248,7 @@ pf:
 			smode = 1;
 			goto loop;
 		}
-		putchr(c);
+		putchar(c);
 		goto loop1;
 
 	case '\t':
@@ -262,12 +260,12 @@ pf:
 			tabflg++;
 			goto loop;
 		}
-		putchr('\t');
+		putchar('\t');
 		goto loop;
 
 	case '\n':
 		if (!smode)  {
-			putchr('\n');
+			putchar('\n');
 			goto loop;
 		}
 		if (nlflg) {
@@ -288,7 +286,7 @@ pf:
 	case 'T':
 		snlflg++;
 	}
-	putchr(c);
+	putchar(c);
 	goto loop;
 }
 
@@ -302,7 +300,7 @@ gc:
 		peekc = 0;
 	} else
 		t = getchar();
-	if (t==-1)
+	if (t==0)
 		return(0);
 	if (t=='{') {
 		ifcnt++;
@@ -355,18 +353,18 @@ l1:
 		goto l1;
 
 	case 'p':
-		f += 16;
+		f =+ 16;
 		goto l1;
 	}
 	peekc = c;
 	return(f);
 }
 
-putchr(c)
+putchar(c)
 {
 	if (tabflg) {
 		tabflg = 0;
-		printf(">;.byte 0%o;<", c+0200);
+		printf(">;.byte %o;<", c+0200);
 	} else
-		printf("%c", c);
+		putc(c, obuf);
 }
