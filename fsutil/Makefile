@@ -19,12 +19,12 @@ install:	$(PROGS)
 		install $(INSTALLFLAGS) $(PROGS) $(DESTDIR)/bin/$(PROGS)
 
 rxboot:		rxboot.s
-		pdp11-as $< -o $@
+		pdp11-asm $< -o $@
 		pdp11-strip $@
 		pdp11-objdump -D $@ > $@.dis
 
 rxboot2:	rxboot2.s
-		pdp11-as $< -o $@
+		pdp11-asm $< -o $@
 		pdp11-strip $@
 		pdp11-objdump -D $@ > $@.dis
 
