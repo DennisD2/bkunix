@@ -506,7 +506,7 @@ bufaddr:
 	.even
 ```
 
-On the disk, there is a file ```rxboot.o``` file already compiled, content is identical (?):
+In the fsutil directory, there is an object file ```rxboot``` file already compiled, content is identical (?):
 ```asm
 dennis@dennis-pc:~/src/lsxunix/fsutil> pdp11-disasm rxboot   
          File: rxboot
@@ -986,9 +986,10 @@ in:	.word	rootdir
 end:
 ```
 
-On the disk, there is a file ```rxboot2``` file already compiled, content is NOT identical
-but very close:
+In the fsutil directory, there is an object file ```rxboot2``` file already compiled, 
+content is NOT identical but very close:
 Blocks are at 07200, 010000, 010600, 05000, 05600.
+
 ```asm
 dennis@dennis-pc:~/src/lsxunix/fsutil> pdp11-disasm rxboot2
          File: rxboot2
@@ -1238,25 +1239,6 @@ The 000072 000001 can be found here in root.dsk:
 ```
 
 # Status
-For unknown reason, the original boot disk is not organized as expected.
-I could find the boot code content, but at location 6400 octal = 0xd00 = 3328 decimal
-```
-0006360 047331 025757 145172 147616 114043 117212 032323 065313
-0006400 000240 005700 001403 052767 000020 000024 012701 177170
-0006420 012702 177172 012704 000152 032711 000040 001775 012711
-0006440 000007 105711 001776 105714 001453 112412 105711 001776
-0006460 112412 105711 001776 100425 005711 100423 016700 000066
-0006500 012711 000003 000401 111220 105711 100775 001775 005711
-0006520 100410 010067 000040 005000 122767 000007 177702 005500
-0006540 000733 012711 040000 000000 000713 000404 000407 000412
-0006560 000025 000030 000000 000200 100607 017150 152123 127051
-0006600 000000 000000 000000 000000 000000 000000 000000 000000
-```
-
-So preceeding the boot block, we have 3328 bytes of "something else".
-But what is this?
-Hm.
-
 From ```lsxfs_inode_get()```, file ```inode.c```, I get this info:
 
 *Inodes are numbered starting from 1. 
@@ -1282,7 +1264,19 @@ seek 256, block 0 - hw 4096
 After knowing this, I could verify that the first bootstrap part (rxboot.o) is
 at correct place.
 
-Next step is to verify the second bootstrap part (rxboot2.o).
+The second bootstrap file also could be found, for that I added some code to lsx-util
+tool to find (and later extract) the boot sectors
+```
+dennis@dennis-pc:~/src/lsxunix/0_pavl_zacharys_garage/original-disks> ~/src/lsxunix/fsutil/lsx-util -v -e abc root.dsk
+Extracting boot sectors
+Extracted boot sector, writing file abc
+Looks like a boot sector
+Found Opcode where list of secondary boot sectors follow
+Secondary sector, track=1, sector=4, offset=7200, expected=7200
+Secondary sector, track=1, sector=7, offset=10000, expected=10000
+Secondary sector, track=1, sector=10, offset=10600, expected=10600
+Secondary sector, track=1, sector=21, offset=13400, expected=5000
+Secondary sector, track=0, sector=24, offset=5600, expected=5600
+```
 
-
-
+Next step is extract these two files and then to recreate a bootable root disk.
