@@ -9,6 +9,7 @@
 
 int verbose;
 int extract;
+int extract_bootsector;
 int add;
 int newfs;
 int check;
@@ -17,6 +18,7 @@ int flat = 1;
 unsigned long bytes;
 char *boot_sector;
 char *boot_sector2;
+char *boot_sector_file_base;
 
 #define alloca(x)  __builtin_alloca(x)
 
@@ -32,16 +34,17 @@ static struct option program_options[] = {
         { "help",	no_argument,		0,	'h' },
         { "version",	no_argument,		0,	'V' },
         { "verbose",	no_argument,		0,	'v' },
-        { "add",	no_argument,		0,	'a' },
+        { "add",	no_argument,		    0,	'a' },
         { "extract",	no_argument,		0,	'x' },
         { "check",	no_argument,		0,	'c' },
-        { "fix",	no_argument,		0,	'f' },
-        { "new",	no_argument,		0,	'n' },
+        { "fix",	no_argument,		    0,	'f' },
+        { "new",	no_argument,		    0,	'n' },
         { "size",	required_argument,	0,	's' },
         { "boot",	required_argument,	0,	'b' },
         { "boot2",	required_argument,	0,	'B' },
         { "flat",	no_argument,		0,	'F' },
         { "shuffle",	no_argument,		0,	'S' },
+        { "extractboot",	required_argument,0,	'e' },
         { 0 }
 };
 
@@ -55,23 +58,25 @@ static void print_help (char *progname)
 	printf ("    %s filesys.bkd\n", progname);
 	printf ("    %s --add filesys.bkd files...\n", progname);
 	printf ("    %s --extract filesys.bkd\n", progname);
+	printf ("    %s --extractboot bootsector filesys.bkd\n", progname);
 	printf ("    %s --check [--fix] filesys.bkd\n", progname);
 	printf ("    %s --new --size=bytes filesys.bkd\n", progname);
 	printf ("\n");
 	printf ("Options:\n");
-	printf ("  -a, --add          Add files to filesystem\n");
-	printf ("  -x, --extract      Extract all files\n");
-	printf ("  -c, --check        Check filesystem, use -c -f to fix\n");
-	printf ("  -f, --fix          Fix bugs in filesystem\n");
-	printf ("  -n, --new          Create new filesystem, -s required\n");
-	printf ("  -s NUM, --size=NUM Size in bytes for created filesystem\n");
-	printf ("  -b FILE, --boot=FILE Boot sector, -B required if -S\n");
-	printf ("  -B FILE, --boot2=FILE Secondary boot sector, -b required\n");
-	printf ("  -F, --flat         Flat mode, no sector remapping (default)\n");
-	printf ("  -S, --shuffle      Shuffle mode, remap 128-byte sectors\n");
-	printf ("  -v, --verbose      Print verbose information\n");
-	printf ("  -V, --version      Print version information and then exit\n");
-	printf ("  -h, --help         Print this message\n");
+	printf ("  -a, --add              Add files to filesystem\n");
+	printf ("  -x, --extract          Extract all files\n");
+	printf ("  -e, --extractboot FILE Extract boot sector(s) to file(s)\n");
+	printf ("  -c, --check            Check filesystem, use -c -f to fix\n");
+	printf ("  -f, --fix              Fix bugs in filesystem\n");
+	printf ("  -n, --new              Create new filesystem, -s required\n");
+	printf ("  -s NUM, --size=NUM     Size in bytes for created filesystem\n");
+	printf ("  -b FILE, --boot=FILE   Boot sector, -B required if -S\n");
+	printf ("  -B FILE, --boot2=FILE  Secondary boot sector, -b required\n");
+	printf ("  -F, --flat             Flat mode, no sector remapping (default)\n");
+	printf ("  -S, --shuffle          Shuffle mode, remap 128-byte sectors\n");
+	printf ("  -v, --verbose          Print verbose information\n");
+	printf ("  -V, --version          Print version information and exit\n");
+	printf ("  -h, --help             Print this message\n");
 	printf ("\n");
 	printf ("Report bugs to \"%s\".\n", program_bug_address);
 }
@@ -403,6 +408,40 @@ void add_boot (lsxfs_t *fs)
 	}
 }
 
+#define SECTORSIZE_BYTES 512
+int extract_bootsectors(lsxfs_t *fs, char *basename) {
+    unsigned char buf[SECTORSIZE_BYTES];
+    if (verbose) {
+        printf ("Extracting boot sectors\n");
+    }
+    if (! lsxfs_seek (fs, 0)) {
+        return 0;
+    }
+    int byte_offset=0;
+    while (byte_offset < SECTORSIZE_BYTES) {
+        /* lsxfs_read8 does implicit offset increment in fs */
+        if (! lsxfs_read8(fs, &(buf[byte_offset]))) {
+            return 0;
+        }
+        byte_offset++;
+    }
+    printf ("Extracted boot sector, writing file %s\n", basename);
+    int fd = open (basename, O_CREAT|O_RDWR);
+    if (fd < 0) {
+        fprintf (stderr, "%s: could not open bootsector file, return value %d\n",
+                 basename, fd);
+        return 0;
+    }
+    int written = write (fd, buf, SECTORSIZE_BYTES);
+    if (written != SECTORSIZE_BYTES) {
+        fprintf (stderr, "%s: could not write bootsector file\n",
+                 basename);
+        return 0;
+    }
+    close (fd);
+    return 1;
+}
+
 int main (int argc, char **argv)
 {
 	int i, key;
@@ -410,7 +449,7 @@ int main (int argc, char **argv)
 	lsxfs_inode_t inode;
 
     for (;;) {
-        key = getopt_long (argc, argv, "vaxncfFSs:b:B:Vh",
+        key = getopt_long (argc, argv, "vaxncfFSs:be:B:Vh",
                            program_options, 0);
         if (key == -1)
             break;
@@ -447,6 +486,10 @@ int main (int argc, char **argv)
                 break;
             case 'B':
                 boot_sector2 = optarg;
+                break;
+            case 'e':
+                boot_sector_file_base = optarg;
+                ++extract_bootsector;
                 break;
             case 'V':
                 printf ("%s\n", program_version);
@@ -508,6 +551,11 @@ int main (int argc, char **argv)
 		lsxfs_close (&fs);
 		return 0;
 	}
+
+    if (extract_bootsector) {
+        extract_bootsectors(&fs, boot_sector_file_base);
+        return 0;
+    }
 
 	add_boot (&fs);
 

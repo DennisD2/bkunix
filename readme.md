@@ -504,7 +504,68 @@ l_sctr:
 bufaddr:
 	.word 0200		/start of pathname bootstrap
 	.even
+```
 
+On the disk, there is a file ```rxboot.o``` file already compiled, content is identical (?):
+```
+dennis@dennis-pc:~/src/lsxunix/fsutil> pdp11-disasm rxboot   
+         File: rxboot
+         Type: FMAGIC (0407) non-relocatable
+Section .text: 120 bytes
+Section .data: 0 bytes
+ Section .bss: 0 bytes
+ Symbol table: 0 names (0 bytes)
+Entry address: 0
+
+Disassembly of section .text:
+000000 <.text>:
+     0: 000240                  nop
+     2: 005700                  tst     r0
+     4: 001403                  beq     12 <.text+014>
+     6: 052767 000020 000024    bis     $16, $040 <.text+040>
+    14: 012701 177170           mov     $-392, r1
+    20: 012702 177172           mov     $-390, r2
+    24: 012704 000152           mov     $106, r4
+    30: 032711 000040           bit     $32, (r1)
+    34: 001775                  beq     030 <.text+030>
+    36: 012711 000007           mov     $7, (r1)
+    42: 105711                  tstb    (r1)
+    44: 001776                  beq     042 <.text+042>
+    46: 105714                  tstb    (r4)
+    50: 001453                  beq     0200 <.bss+010>
+    52: 112412                  movb    (r4)+, (r2)
+    54: 105711                  tstb    (r1)
+    56: 001776                  beq     054 <.text+054>
+    60: 112412                  movb    (r4)+, (r2)
+    62: 105711                  tstb    (r1)
+    64: 001776                  beq     062 <.text+062>
+    66: 100425                  bmi     0142 <.text+0142>
+    70: 005711                  tst     (r1)
+    72: 100423                  bmi     0142 <.text+0142>
+    74: 016700 000066           mov     $0164 <.text+0164>, r0
+   100: 012711 000003           mov     $3, (r1)
+   104: 000401                  br      0110 <.text+0110>
+   106: 111220                  movb    (r2), (r0)+
+   110: 105711                  tstb    (r1)
+   112: 100775                  bmi     0106 <.text+0106>
+   114: 001775                  beq     0110 <.text+0110>
+   116: 005711                  tst     (r1)
+   120: 100410                  bmi     0142 <.text+0142>
+   122: 010067 000040           mov     r0, $0166 <.text+0166>
+   126: 005000                  clr     r0
+   130: 122767 000007 177702    cmpb    $7, $040 <.text+040>
+   136: 005500                  adc     r0
+   140: 000733                  br      030 <.text+030>
+   142: 012711 040000           mov     $16384, (r1)
+   146: 000000                  halt
+   150: 000713                  br      0 <.text>
+   152: 000404                  br      0164 <.text+0164>
+   154: 000407                  br      0174 <.bss+4>
+   156: 000412                  br      0204 <.bss+014>
+   160: 000025                  .word   21
+   162: 000030                  .word   24
+   164: 000000                  halt
+   166: 000200                  rts     r0
 ```
 The code above loads a second part of the boot code.
 This boot code is located in 5 blocks, their addresses can
