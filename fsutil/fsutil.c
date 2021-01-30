@@ -440,6 +440,41 @@ int extract_bootsectors(lsxfs_t *fs, char *basename) {
                  basename);
         return 0;
     }
+
+    if (buf[1] != 000 && buf[0] != 0240) {
+        fprintf (stderr, "Does not look like a boot sector No 0000 0240 at first two bytes %x %x\n",
+                 buf[0], buf[1]);
+    }
+    printf ("Looks like a boot sector\n");
+    int i;
+    unsigned short track[10], sector[10];
+    track[0] = 0;
+    for (i=0; i<SECTORSIZE_BYTES; i++) {
+        /*printf("0%03o\n", buf[i]);*/
+        if (buf[i] == (unsigned char)0713 && i>0 && buf[i-1] == 000) {
+            printf ("Found Opcode where list of secondary boot sectors follow\n");
+            i++;
+            int j = 0, k= 0;
+            while (buf[i+k] != 000 || buf[i+k+1] != 000) {
+                /*printf("track: 0%03x\n", buf[i+k]);
+                printf("sector: 0%03x\n", buf[i+k+1]);*/
+                track[j] = buf[i+k];
+                sector[j] = buf[i+k+1];
+                j++;
+                k += 2;
+            }
+            track[j] = sector[j] = 0; /* end marker */
+            break;
+        }
+    }
+    long expected[] = { 07200, 010000, 010600, 05000, 0 };
+    if (track[0] != 0 || sector[0] != 0 ) {
+        for (i=0; track[i] != 0 || sector[i] != 0; i++ ) {
+            long offset = (track[i] * 26 + sector[i] - 1) * 128;
+            printf("Secondary sector, track=%d, sector=%d, offset=%lo, expected=%lo\n", track[i], sector[i],
+                   offset, expected[i]);
+        }
+    }
     close (fd);
     return 1;
 }
