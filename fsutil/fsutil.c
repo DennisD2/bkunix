@@ -408,23 +408,25 @@ void add_boot (lsxfs_t *fs)
 	}
 }
 
-#define SECTORSIZE_BYTES 512
+#define SECTORSIZE_BYTES 128
 int extract_bootsectors(lsxfs_t *fs, char *basename) {
     unsigned char buf[SECTORSIZE_BYTES];
     if (verbose) {
         printf ("Extracting boot sectors\n");
     }
+
+    /* first/single bootsector is at offset 0 */
     if (! lsxfs_seek (fs, 0)) {
         return 0;
     }
     int byte_offset=0;
     while (byte_offset < SECTORSIZE_BYTES) {
-        /* lsxfs_read8 does implicit offset increment in fs */
         if (! lsxfs_read8(fs, &(buf[byte_offset]))) {
             return 0;
         }
         byte_offset++;
     }
+
     printf ("Extracted boot sector, writing file %s\n", basename);
     int fd = open (basename, O_CREAT|O_RDWR);
     if (fd < 0) {
