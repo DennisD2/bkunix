@@ -507,7 +507,7 @@ bufaddr:
 ```
 
 On the disk, there is a file ```rxboot.o``` file already compiled, content is identical (?):
-```
+```asm
 dennis@dennis-pc:~/src/lsxunix/fsutil> pdp11-disasm rxboot   
          File: rxboot
          Type: FMAGIC (0407) non-relocatable
@@ -571,7 +571,7 @@ The code above loads a second part of the boot code.
 This boot code is located in 5 blocks, their addresses can
 be found in the 'sector and track table' at the end of the 
 code after label ```l_sctr``` (means *load_sectors* maybe). 
-Block addresses are (sector:track) 4:1, 7:1, 10:1, 21:0 and 24:0.
+Block addresses are (track:sector) 1:4, 1:7, 1:10, 0:21 and 0:24.
 
 In the 70ies, these cool long-bearded guys named a sector 'secter' 
 as can be seen from the listing above.
@@ -984,7 +984,257 @@ nm:
 	.even
 in:	.word	rootdir
 end:
+```
 
+On the disk, there is a file ```rxboot2``` file already compiled, content is NOT identical
+but very close:
+Blocks are at 07200, 010000, 010600, 05000, 05600.
+```asm
+dennis@dennis-pc:~/src/lsxunix/fsutil> pdp11-disasm rxboot2
+         File: rxboot2
+         Type: FMAGIC (0407) non-relocatable
+Section .text: 602 bytes
+Section .data: 0 bytes
+ Section .bss: 0 bytes
+ Symbol table: 0 names (0 bytes)
+Entry address: 0
+
+Disassembly of section .text:
+000000 <.text>:
+     0: 010702                  mov     pc, r2
+     2: 005742                  tst     -(r2)
+     4: 012706 057000           mov     $24064, sp
+    10: 010601                  mov     sp, r1
+    12: 020701                  cmp     pc, r1
+    14: 103006                  bcc     032 <.text+032>
+    16: 000005                  reset
+    20: 012221                  mov     (r2)+, (r1)+
+    22: 020127 060132           cmp     r1, $24666
+    26: 103774                  bcs     16 <.text+020>
+    30: 000116                  jmp     (sp)
+    32: 005700                  tst     r0
+    34: 001403                  beq     044 <.text+044>
+    36: 052767 000020 000552    bis     $16, $0616 <.text+0616>
+    44: 012701 060116           mov     $24654, r1
+    50: 112100                  movb    (r1)+, r0
+    52: 001403                  beq     062 <.text+062>
+    54: 004767 000760           jsr     pc, 01040 <.text+01040>
+    60: 000773                  br      050 <.text+050>
+    62: 005001                  clr     r1
+    64: 005000                  clr     r0
+    66: 110021                  movb    r0, (r1)+
+    70: 004767 000670           jsr     pc, 0764 <.text+0764>
+    74: 020027 000012           cmp     r0, $10
+   100: 001414                  beq     0132 <.text+0132>
+   102: 020027 000100           cmp     r0, $64
+   106: 001765                  beq     062 <.text+062>
+   110: 020027 000040           cmp     r0, $32
+   114: 001763                  beq     064 <.text+064>
+   116: 020027 000043           cmp     r0, $35
+   122: 001361                  bne     066 <.text+066>
+   124: 005301                  dec     r1
+   126: 003360                  bgt     070 <.text+070>
+   130: 000754                  br      062 <.text+062>
+   132: 010603                  mov     sp, r3
+   134: 105021                  clrb    (r1)+
+   136: 105021                  clrb    (r1)+
+   140: 042701 000001           bic     $1, r1
+   144: 160106                  sub     r1, sp
+   146: 005002                  clr     r2
+   150: 005701                  tst     r1
+   152: 001410                  beq     0174 <.text+0174>
+   154: 114143                  movb    -(r1), -(r3)
+   156: 001774                  beq     0150 <.text+0150>
+   160: 010304                  mov     r3, r4
+   162: 114143                  movb    -(r1), -(r3)
+   164: 001375                  bne     0160 <.text+0160>
+   166: 010446                  mov     r4, -(sp)
+   170: 005202                  inc     r2
+   172: 000766                  br      0150 <.text+0150>
+   174: 010246                  mov     r2, -(sp)
+   176: 105344                  decb    -(r4)
+   200: 012767 000001 000722    mov     $1, $01130 <.text+01130>
+   206: 004767 000146           jsr     pc, 0360 <.text+0360>
+   212: 010403                  mov     r4, r3
+   214: 012705 056040           mov     $23584, r5
+   220: 010304                  mov     r3, r4
+   222: 010500                  mov     r5, r0
+   224: 062705 000020           add     $16, r5
+   230: 020027 056040           cmp     r0, $23584
+   234: 103405                  bcs     0250 <.text+0250>
+   236: 004767 000206           jsr     pc, 0450 <.text+0450>
+   242: 000656                  br      0 <.text>
+   244: 162705 001000           sub     $512, r5
+   250: 020304                  cmp     r3, r4
+   252: 001003                  bne     0262 <.text+0262>
+   254: 012067 000650           mov     (r0)+, $01130 <.text+01130>
+   260: 001757                  beq     0220 <.text+0220>
+   262: 105724                  tstb    (r4)+
+   264: 001410                  beq     0306 <.text+0306>
+   266: 121427 000057           cmpb    (r4), $47
+   272: 001745                  beq     0206 <.text+0206>
+   274: 020005                  cmp     r0, r5
+   276: 103371                  bcc     0262 <.text+0262>
+   300: 121420                  cmpb    (r4), (r0)+
+   302: 001752                  beq     0230 <.text+0230>
+   304: 000745                  br      0220 <.text+0220>
+   306: 004767 000046           jsr     pc, 0360 <.text+0360>
+   312: 005003                  clr     r3
+   314: 004767 000130           jsr     pc, 0450 <.text+0450>
+   320: 000627                  br      0 <.text>
+   322: 021027 000407           cmp     (r0), $263
+   326: 001002                  bne     0334 <.text+0334>
+   330: 062700 000020           add     $16, r0
+   334: 012023                  mov     (r0)+, (r3)+
+   336: 020027 056040           cmp     r0, $23584
+   342: 103774                  bcs     0334 <.text+0334>
+   344: 004767 000100           jsr     pc, 0450 <.text+0450>
+   350: 000401                  br      0354 <.text+0354>
+   352: 000770                  br      0334 <.text+0334>
+   354: 004737 000000           jsr     pc, *$0 <.text>
+   360: 016701 000544           mov     $01126 <.text+01126>, r1
+   364: 062701 000037           add     $31, r1
+   370: 010146                  mov     r1, -(sp)
+   372: 006201                  asr     r1
+   374: 006201                  asr     r1
+   376: 006201                  asr     r1
+   400: 006201                  asr     r1
+   402: 004767 000140           jsr     pc, 0546 <.text+0546>
+   406: 012601                  mov     (sp)+, r1
+   410: 042701 177760           bic     $-16, r1
+   414: 006301                  asl     r1
+   416: 006301                  asl     r1
+   420: 006301                  asl     r1
+   422: 006301                  asl     r1
+   424: 006301                  asl     r1
+   426: 060001                  add     r0, r1
+   430: 012700 055000           mov     $23040, r0
+   434: 012120                  mov     (r1)+, (r0)+
+   436: 020027 055030           cmp     r0, $23064
+   442: 103774                  bcs     0434 <.text+0434>
+   444: 005002                  clr     r2
+   446: 000207                  rts     pc
+   450: 062716 000002           add     $2, (sp)
+   454: 010200                  mov     r2, r0
+   456: 005202                  inc     r2
+   460: 032727 010000 055000    bit     $4096, $23040
+   466: 001010                  bne     0510 <.text+0510>
+   470: 006300                  asl     r0
+   472: 016001 055010           mov     23048(r0), r1
+   476: 001023                  bne     0546 <.text+0546>
+   500: 162716 000002           sub     $2, (sp)
+   504: 005000                  clr     r0
+   506: 000207                  rts     pc
+   510: 010046                  mov     r0, -(sp)
+   512: 105000                  clrb    r0
+   514: 000300                  swab    r0
+   516: 006300                  asl     r0
+   520: 016001 055010           mov     23048(r0), r1
+   524: 001765                  beq     0500 <.text+0500>
+   526: 004767 000014           jsr     pc, 0546 <.text+0546>
+   532: 006316                  asl     (sp)
+   534: 042716 177001           bic     $-511, (sp)
+   540: 062600                  add     (sp)+, r0
+   542: 011001                  mov     (r0), r1
+   544: 001755                  beq     0500 <.text+0500>
+   546: 010546                  mov     r5, -(sp)
+   550: 010446                  mov     r4, -(sp)
+   552: 010346                  mov     r3, -(sp)
+   554: 010246                  mov     r2, -(sp)
+   556: 012704 177170           mov     $-392, r4
+   562: 012703 177172           mov     $-390, r3
+   566: 012702 055040           mov     $23072, r2
+   572: 006301                  asl     r1
+   574: 006301                  asl     r1
+   576: 010146                  mov     r1, -(sp)
+   600: 010105                  mov     r1, r5
+   602: 062705 000004           add     $4, r5
+   606: 032714 000040           bit     $32, (r4)
+   612: 001775                  beq     0606 <.text+0606>
+   614: 012714 000007           mov     $7, (r4)
+   620: 011601                  mov     (sp), r1
+   622: 006301                  asl     r1
+   624: 061601                  add     (sp), r1
+   626: 005000                  clr     r0
+   630: 162701 000032           sub     $26, r1
+   634: 100402                  bmi     0642 <.text+0642>
+   636: 005200                  inc     r0
+   640: 000773                  br      0630 <.text+0630>
+   642: 062701 000033           add     $27, r1
+   646: 105714                  tstb    (r4)
+   650: 001776                  beq     0646 <.text+0646>
+   652: 110113                  movb    r1, (r3)
+   654: 010001                  mov     r0, r1
+   656: 005000                  clr     r0
+   660: 162701 000003           sub     $3, r1
+   664: 100402                  bmi     0672 <.text+0672>
+   666: 005200                  inc     r0
+   670: 000773                  br      0660 <.text+0660>
+   672: 005200                  inc     r0
+   674: 022700 000115           cmp     $77, r0
+   700: 001001                  bne     0704 <.text+0704>
+   702: 005000                  clr     r0
+   704: 105714                  tstb    (r4)
+   706: 001776                  beq     0704 <.text+0704>
+   710: 110013                  movb    r0, (r3)
+   712: 105714                  tstb    (r4)
+   714: 001776                  beq     0712 <.text+0712>
+   716: 012714 000003           mov     $3, (r4)
+   722: 000401                  br      0726 <.text+0726>
+   724: 111322                  movb    (r3), (r2)+
+   726: 105714                  tstb    (r4)
+   730: 002775                  blt     0724 <.text+0724>
+   732: 105714                  tstb    (r4)
+   734: 003774                  ble     0726 <.text+0726>
+   736: 005216                  inc     (sp)
+   740: 021605                  cmp     (sp), r5
+   742: 002721                  blt     0606 <.text+0606>
+   744: 005726                  tst     (sp)+
+   746: 012602                  mov     (sp)+, r2
+   750: 012603                  mov     (sp)+, r3
+   752: 012604                  mov     (sp)+, r4
+   754: 012605                  mov     (sp)+, r5
+   756: 012700 055040           mov     $23072, r0
+   762: 000207                  rts     pc
+   764: 012700 177560           mov     $-144, r0
+   770: 005210                  inc     (r0)
+   772: 105710                  tstb    (r0)
+   774: 002376                  bge     0772 <.text+0772>
+   776: 013700 177562           mov     *$65394, r0
+  1002: 042700 177600           bic     $-128, r0
+  1006: 020027 000101           cmp     r0, $65
+  1012: 103405                  bcs     01026 <.text+01026>
+  1014: 020027 000132           cmp     r0, $90
+  1020: 101002                  bhi     01026 <.text+01026>
+  1022: 062700 000040           add     $32, r0
+  1026: 020027 000012           cmp     r0, $10
+  1032: 001002                  bne     01040 <.text+01040>
+  1034: 012700 000012           mov     $10, r0
+  1040: 105737 177564           tstb    *$65396
+  1044: 002375                  bge     01040 <.text+01040>
+  1046: 020027 000012           cmp     r0, $10
+  1052: 001016                  bne     01110 <.text+01110>
+  1054: 012700 000012           mov     $10, r0
+  1060: 004767 177754           jsr     pc, 01040 <.text+01040>
+  1064: 012700 000212           mov     $138, r0
+  1070: 004767 177744           jsr     pc, 01040 <.text+01040>
+  1074: 005000                  clr     r0
+  1076: 004767 177736           jsr     pc, 01040 <.text+01040>
+  1102: 012700 000012           mov     $10, r0
+  1106: 000207                  rts     pc
+  1110: 010037 177566           mov     r0, *$65398
+  1114: 000207                  rts     pc
+  1116: 071012                  div     (r2), r0
+  1120: 020170 067542           cmp     r1, *28514(r0)
+  1124: 072157                  ash     *-(pc), r1
+  1126: 000072                  .word   58
+  1130: 000001                  wait
+```
+
+The 000072 000001 can be found here in root.dsk:
+```
+0005720  020170  067542  072157  000072  000001  000000  000000  000000
+          x  sp   b   o   o   t   : nul soh nul nul nul nul nul nul nul
 ```
 
 # Status

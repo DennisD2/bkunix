@@ -467,7 +467,8 @@ int extract_bootsectors(lsxfs_t *fs, char *basename) {
             break;
         }
     }
-    long expected[] = { 07200, 010000, 010600, 05000, 0 };
+    extern unsigned long deskew (unsigned long address);
+    long expected[] = { 07200, 010000, 010600, 05000, 05600 };
     if (track[0] != 0 || sector[0] != 0 ) {
         for (i=0; track[i] != 0 || sector[i] != 0; i++ ) {
             long offset = (track[i] * 26 + sector[i] - 1) * 128;
