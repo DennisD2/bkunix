@@ -88,7 +88,9 @@ again:
 		return 0;
 	fs->nfree--;
 	*bno = fs->free [fs->nfree];
-/*	printf ("allocate new block %d from slot %d\n", *bno, fs->nfree);*/
+	if (verbose > 3) {
+        printf("allocate new block %d from slot %d\n", *bno, fs->nfree);
+    }
 	fs->free [fs->nfree] = 0;
 	fs->dirty = 1;
 	if (fs->nfree <= 0) {
