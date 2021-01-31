@@ -251,6 +251,8 @@ Source for crt0.o is missing.
 
 Source for libc.a and liba.a is missing.
 
+Boot sector source is missing.
+
 Most commands seems to exist. Also the complete build
 toolchain seems to be there. There is no 'make', but shell scripts 
 show how to compile.
