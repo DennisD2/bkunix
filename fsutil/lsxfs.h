@@ -66,6 +66,7 @@ typedef void (*lsxfs_directory_scanner_t) (lsxfs_inode_t *dir,
 	lsxfs_inode_t *file, char *dirname, char *filename, void *arg);
 
 int lsxfs_seek (lsxfs_t *fs, unsigned long offset);
+int lsxfs_seek_raw (lsxfs_t *fs, unsigned int track, unsigned int sector);
 int lsxfs_read8 (lsxfs_t *fs, unsigned char *val);
 int lsxfs_read16 (lsxfs_t *fs, unsigned short *val);
 int lsxfs_read32 (lsxfs_t *fs, unsigned long *val);

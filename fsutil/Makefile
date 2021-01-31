@@ -3,7 +3,7 @@ CC		= gcc
 
 #CFLAGS		= -g -O -Wall -std=c89
 CFLAGS		= -g -Wall -std=c89
-OBJS		= superblock.o inode.o create.o check.o file.o block.o
+OBJS		= superblock.o inode.o create.o check.o file.o block.o bootsector.o
 PROGS		= lsx-util
 LIBS		=
 
