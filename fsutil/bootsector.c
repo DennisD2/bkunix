@@ -8,14 +8,23 @@
 
 extern int verbose;
 
-int write_file( char *name, unsigned char *buf, unsigned long num_bytes) {
+int write_file( char *name, unsigned char *buf, unsigned long num_bytes, struct filhdr *file_header) {
+    int written;
     int fd = open (name, O_CREAT|O_RDWR);
     if (fd < 0) {
         fprintf (stderr, "%s: could not open file, return value %d\n",
                  name, fd);
         return 0;
     }
-    int written = write (fd, buf, num_bytes);
+    if (file_header != NULL) {
+        /* write header */
+        written = write (fd, file_header, sizeof(struct filhdr));
+        if (written != sizeof(struct filhdr)) {
+            fprintf (stderr, "%s: could not write file header for file\n", name);
+            return 0;
+        }
+    }
+    written = write (fd, buf, num_bytes);
     if (written != num_bytes) {
         fprintf (stderr, "%s: could not write file\n", name);
         return 0;
@@ -75,8 +84,19 @@ int extract_bootsectors(lsxfs_t *fs, char *basename) {
     } else {
         printf("Looks like a boot sector\n");
     }
+
+    struct filhdr file_header;
+    file_header.fmagic = 0407; /* 04 07 */
+    file_header.tsize = 120; /* 120 */
+    file_header.bsize = 0;
+    file_header.dsize = 0;
+    file_header.ssize = 0;
+    file_header.entry = 0;
+    file_header.pad = 0;
+    file_header.relflg = 1; /* 1 */
+
     printf ("Writing file %s\n", basename);
-    if ( write_file(basename, buf, SECTORSIZE_BYTES) == 0) {
+    if ( write_file(basename, buf, SECTORSIZE_BYTES, &file_header) == 0) {
         fprintf (stderr, "Could not write bootsector file %s\n", basename);
         return 0;
     }
@@ -120,13 +140,25 @@ int extract_bootsectors(lsxfs_t *fs, char *basename) {
             }
 
             printf("Read sector at offset %lo\n", offset);
-            /* TODO -1 explain -1 */
+            /* TODO : explain -1 */
             if (read_sector_raw( fs, track[i], sector[i] - 1, SECTORSIZE_BYTES, buf) == 0) {
                 fprintf (stderr, "Error reading sector 0\n");
                 return 0;
             }
+            struct filhdr *header = NULL;
+            if (i == 0) {
+                file_header.fmagic = 0407;
+                file_header.tsize = 602; /* found by trial and error */
+                file_header.bsize = 0;
+                file_header.dsize = 0;
+                file_header.ssize = 0;
+                file_header.entry = 0;
+                file_header.pad = 0;
+                file_header.relflg = 1;
+                header = &file_header;
+            }
             printf("Write sector to file %s\n", filename);
-            if (write_file( filename, buf, SECTORSIZE_BYTES) ==0) {
+            if (write_file( filename, buf, SECTORSIZE_BYTES, header) == 0) {
                 fprintf (stderr, "Could not write sector file %s\n", filename);
                 return 0;
             }
