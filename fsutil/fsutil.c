@@ -408,7 +408,39 @@ void add_boot (lsxfs_t *fs)
 	}
 }
 
+
+int write_file( char *name, unsigned char *buf, unsigned long num_bytes) {
+    int fd = open (name, O_CREAT|O_RDWR);
+    if (fd < 0) {
+        fprintf (stderr, "%s: could not open file, return value %d\n",
+                 name, fd);
+        return 0;
+    }
+    int written = write (fd, buf, num_bytes);
+    if (written != num_bytes) {
+        fprintf (stderr, "%s: could not write file\n", name);
+        return 0;
+    }
+    close (fd);
+    return 1;
+}
+
 #define SECTORSIZE_BYTES 128
+
+int read_sector( lsxfs_t *fs, unsigned long offset,
+                 unsigned long num_bytes, unsigned char *buf ) {
+    if (! lsxfs_seek (fs, offset)) {
+        return 0;
+    }
+    int byte_offset=0;
+    while (byte_offset < num_bytes) {
+        if (! lsxfs_read8(fs, &(buf[byte_offset]))) {
+            return 0;
+        }
+        byte_offset++;
+    }
+    return 1;
+}
 int extract_bootsectors(lsxfs_t *fs, char *basename) {
     unsigned char buf[SECTORSIZE_BYTES];
     if (verbose) {
@@ -416,36 +448,23 @@ int extract_bootsectors(lsxfs_t *fs, char *basename) {
     }
 
     /* first/single bootsector is at offset 0 */
-    if (! lsxfs_seek (fs, 0)) {
-        return 0;
-    }
-    int byte_offset=0;
-    while (byte_offset < SECTORSIZE_BYTES) {
-        if (! lsxfs_read8(fs, &(buf[byte_offset]))) {
-            return 0;
-        }
-        byte_offset++;
-    }
-
-    printf ("Extracted boot sector, writing file %s\n", basename);
-    int fd = open (basename, O_CREAT|O_RDWR);
-    if (fd < 0) {
-        fprintf (stderr, "%s: could not open bootsector file, return value %d\n",
-                 basename, fd);
-        return 0;
-    }
-    int written = write (fd, buf, SECTORSIZE_BYTES);
-    if (written != SECTORSIZE_BYTES) {
-        fprintf (stderr, "%s: could not write bootsector file\n",
-                 basename);
+    if (read_sector( fs, 0L, SECTORSIZE_BYTES, buf) == 0) {
+        fprintf (stderr, "Error reading sector 0\n");
         return 0;
     }
 
     if (buf[1] != 000 && buf[0] != 0240) {
-        fprintf (stderr, "Does not look like a boot sector No 0000 0240 at first two bytes %x %x\n",
+        fprintf (stderr, "Does not look like a boot sector No '0000 0240' as first two bytes %x %x\n",
                  buf[0], buf[1]);
+    } else {
+        printf("Looks like a boot sector\n");
     }
-    printf ("Looks like a boot sector\n");
+    printf ("Writing file %s\n", basename);
+    if ( write_file(basename, buf, SECTORSIZE_BYTES) == 0) {
+        fprintf (stderr, "Could not write bootsector file %s\n", basename);
+        return 0;
+    }
+
     int i;
     unsigned short track[10], sector[10];
     track[0] = 0;
@@ -467,18 +486,19 @@ int extract_bootsectors(lsxfs_t *fs, char *basename) {
             break;
         }
     }
-    //extern unsigned long deskew (unsigned long address);
+    /*extern unsigned long deskew (unsigned long address);*/
     long expected[] = { 07200, 010000, 010600, 05000, 05600 };
     if (track[0] != 0 || sector[0] != 0 ) {
         for (i=0; track[i] != 0 || sector[i] != 0; i++ ) {
             long offset = (track[i] * 26 + sector[i] - 1) * 128;
             printf("Secondary sector, track=%d, sector=%d, offset=%lo, expected=%lo\n", track[i], sector[i],
                    offset, expected[i]);
+
         }
     }
-    close (fd);
     return 1;
 }
+
 
 int main (int argc, char **argv)
 {
