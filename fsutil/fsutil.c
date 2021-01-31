@@ -437,6 +437,7 @@ int read_sector( lsxfs_t *fs, unsigned long offset,
         if (! lsxfs_read8(fs, &(buf[byte_offset]))) {
             return 0;
         }
+        printf("0%03o\n", buf[byte_offset]);
         byte_offset++;
     }
     return 1;
@@ -489,13 +490,27 @@ int extract_bootsectors(lsxfs_t *fs, char *basename) {
     /*extern unsigned long deskew (unsigned long address);*/
     long expected[] = { 07200, 010000, 010600, 05000, 05600 };
     if (track[0] != 0 || sector[0] != 0 ) {
-        for (i=0; track[i] != 0 || sector[i] != 0; i++ ) {
+        char filename[128];
+        for (i=0; /*track[i] != 0 || sector[i] != 0*/i==0; i++ ) {
             long offset = (track[i] * 26 + sector[i] - 1) * 128;
             printf("Secondary sector, track=%d, sector=%d, offset=%lo, expected=%lo\n", track[i], sector[i],
                    offset, expected[i]);
+            filename[0] = '\0';
+            sprintf( filename, "%s-%d", basename, i );
 
+            printf("Read sector at offset %lo\n", offset);
+            if (read_sector( fs, offset, SECTORSIZE_BYTES, buf) == 0) {
+                fprintf (stderr, "Error reading sector 0\n");
+                return 0;
+            }
+            printf("Write sector to file %s\n", filename);
+            if (write_file( filename, buf, SECTORSIZE_BYTES) ==0) {
+                fprintf (stderr, "Could not write sector file %s\n", filename);
+                return 0;
+            }
         }
     }
+    printf("All sector files written\n");
     return 1;
 }
 
