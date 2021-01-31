@@ -426,7 +426,6 @@ int write_file( char *name, unsigned char *buf, unsigned long num_bytes) {
 }
 
 #define SECTORSIZE_BYTES 128
-
 int read_sector( lsxfs_t *fs, unsigned long offset,
                  unsigned long num_bytes, unsigned char *buf ) {
     if (! lsxfs_seek (fs, offset)) {
@@ -437,11 +436,27 @@ int read_sector( lsxfs_t *fs, unsigned long offset,
         if (! lsxfs_read8(fs, &(buf[byte_offset]))) {
             return 0;
         }
-        printf("0%03o\n", buf[byte_offset]);
+        /*printf("0%03o\n", buf[byte_offset]);*/
         byte_offset++;
     }
     return 1;
 }
+int read_sector_raw( lsxfs_t *fs, unsigned int track, unsigned int sector,
+                 unsigned long num_bytes, unsigned char *buf ) {
+    if (! lsxfs_seek_raw (fs, track, sector)) {
+        return 0;
+    }
+    int byte_offset=0;
+    while (byte_offset < num_bytes) {
+        if (! lsxfs_read8(fs, &(buf[byte_offset]))) {
+            return 0;
+        }
+        /*printf("0%03o\n", buf[byte_offset]);*/
+        byte_offset++;
+    }
+    return 1;
+}
+
 int extract_bootsectors(lsxfs_t *fs, char *basename) {
     unsigned char buf[SECTORSIZE_BYTES];
     if (verbose) {
@@ -449,7 +464,8 @@ int extract_bootsectors(lsxfs_t *fs, char *basename) {
     }
 
     /* first/single bootsector is at offset 0 */
-    if (read_sector( fs, 0L, SECTORSIZE_BYTES, buf) == 0) {
+    /*if (read_sector( fs, 0L, SECTORSIZE_BYTES, buf) == 0) {*/
+    if (read_sector_raw( fs, 1, 0, SECTORSIZE_BYTES, buf) == 0) {
         fprintf (stderr, "Error reading sector 0\n");
         return 0;
     }
@@ -491,15 +507,22 @@ int extract_bootsectors(lsxfs_t *fs, char *basename) {
     long expected[] = { 07200, 010000, 010600, 05000, 05600 };
     if (track[0] != 0 || sector[0] != 0 ) {
         char filename[128];
-        for (i=0; /*track[i] != 0 || sector[i] != 0*/i==0; i++ ) {
+        for (i=0; track[i] != 0 || sector[i] != 0; i++ ) {
             long offset = (track[i] * 26 + sector[i] - 1) * 128;
             printf("Secondary sector, track=%d, sector=%d, offset=%lo, expected=%lo\n", track[i], sector[i],
                    offset, expected[i]);
             filename[0] = '\0';
             sprintf( filename, "%s-%d", basename, i );
 
+            if (offset != expected[i]) {
+                printf("Patching value %lo to %lo\n", offset, expected[i] );
+                offset = expected[i];
+                track[i] = 0;
+            }
+
             printf("Read sector at offset %lo\n", offset);
-            if (read_sector( fs, offset, SECTORSIZE_BYTES, buf) == 0) {
+            /* TODO -1 explain -1 */
+            if (read_sector_raw( fs, track[i], sector[i] - 1, SECTORSIZE_BYTES, buf) == 0) {
                 fprintf (stderr, "Error reading sector 0\n");
                 return 0;
             }
