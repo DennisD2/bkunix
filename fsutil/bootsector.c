@@ -10,32 +10,32 @@ extern int verbose;
 
 int write_file( char *name, unsigned char *buf, unsigned long num_bytes, struct filhdr *file_header) {
     int written;
-    int fd = open (name, O_CREAT|O_RDWR);
+    int fd = open(name, O_CREAT|O_RDWR, 0666);
     if (fd < 0) {
-        fprintf (stderr, "%s: could not open file, return value %d\n",
+        fprintf(stderr, "%s: could not open file, return value %d\n",
                  name, fd);
         return 0;
     }
     if (file_header != NULL) {
         /* write header */
-        written = write (fd, file_header, sizeof(struct filhdr));
+        written = write(fd, file_header, sizeof(struct filhdr));
         if (written != sizeof(struct filhdr)) {
-            fprintf (stderr, "%s: could not write file header for file\n", name);
+            fprintf(stderr, "%s: could not write file header for file\n", name);
             return 0;
         }
     }
     written = write (fd, buf, num_bytes);
     if (written != num_bytes) {
-        fprintf (stderr, "%s: could not write file\n", name);
+        fprintf(stderr, "%s: could not write file\n", name);
         return 0;
     }
-    close (fd);
+    close(fd);
     return 1;
 }
 
 int read_sector( lsxfs_t *fs, unsigned long offset,
                  unsigned long num_bytes, unsigned char *buf ) {
-    if (! lsxfs_seek (fs, offset)) {
+    if (! lsxfs_seek(fs, offset)) {
         return 0;
     }
     int byte_offset=0;
@@ -51,7 +51,7 @@ int read_sector( lsxfs_t *fs, unsigned long offset,
 
 int read_sector_raw( lsxfs_t *fs, unsigned int track, unsigned int sector,
                      unsigned long num_bytes, unsigned char *buf ) {
-    if (! lsxfs_seek_raw (fs, track, sector)) {
+    if (! lsxfs_seek_raw(fs, track, sector)) {
         return 0;
     }
     int byte_offset=0;
@@ -68,18 +68,18 @@ int read_sector_raw( lsxfs_t *fs, unsigned int track, unsigned int sector,
 int extract_bootsectors(lsxfs_t *fs, char *basename) {
     unsigned char buf[SECTORSIZE_BYTES];
     if (verbose) {
-        printf ("Extracting boot sectors\n");
+        printf("Extracting boot sectors\n");
     }
 
     /* first/single bootsector is at offset 0 */
     /*if (read_sector( fs, 0L, SECTORSIZE_BYTES, buf) == 0) {*/
     if (read_sector_raw( fs, 1, 0, SECTORSIZE_BYTES, buf) == 0) {
-        fprintf (stderr, "Error reading sector 0\n");
+        fprintf(stderr, "Error reading sector 0\n");
         return 0;
     }
 
     if (buf[1] != 000 && buf[0] != 0240) {
-        fprintf (stderr, "Does not look like a boot sector No '0000 0240' as first two bytes %x %x\n",
+        fprintf(stderr, "Does not look like a boot sector No '0000 0240' as first two bytes %x %x\n",
                  buf[0], buf[1]);
     } else {
         printf("Looks like a boot sector\n");
@@ -95,9 +95,9 @@ int extract_bootsectors(lsxfs_t *fs, char *basename) {
     file_header.pad = 0;
     file_header.relflg = 1; /* 1 */
 
-    printf ("Writing file %s\n", basename);
+    printf("Writing file %s\n", basename);
     if ( write_file(basename, buf, SECTORSIZE_BYTES, &file_header) == 0) {
-        fprintf (stderr, "Could not write bootsector file %s\n", basename);
+        fprintf(stderr, "Could not write bootsector file %s\n", basename);
         return 0;
     }
 
@@ -107,7 +107,7 @@ int extract_bootsectors(lsxfs_t *fs, char *basename) {
     for (i=0; i<SECTORSIZE_BYTES; i++) {
         /*printf("0%03o\n", buf[i]);*/
         if (buf[i] == (unsigned char)0713 && i>0 && buf[i-1] == 000) {
-            printf ("Found Opcode where list of secondary boot sectors follow\n");
+            printf("Found Opcode where list of secondary boot sectors follow\n");
             i++;
             int j = 0, k= 0;
             while (buf[i+k] != 000 || buf[i+k+1] != 000) {
@@ -142,7 +142,7 @@ int extract_bootsectors(lsxfs_t *fs, char *basename) {
             printf("Read sector at offset %lo\n", offset);
             /* TODO : explain -1 */
             if (read_sector_raw( fs, track[i], sector[i] - 1, SECTORSIZE_BYTES, buf) == 0) {
-                fprintf (stderr, "Error reading sector 0\n");
+                fprintf(stderr, "Error reading sector 0\n");
                 return 0;
             }
             struct filhdr *header = NULL;
@@ -159,7 +159,7 @@ int extract_bootsectors(lsxfs_t *fs, char *basename) {
             }
             printf("Write sector to file %s\n", filename);
             if (write_file( filename, buf, SECTORSIZE_BYTES, header) == 0) {
-                fprintf (stderr, "Could not write sector file %s\n", filename);
+                fprintf(stderr, "Could not write sector file %s\n", filename);
                 return 0;
             }
         }
