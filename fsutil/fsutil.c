@@ -10,6 +10,7 @@
 int verbose;
 int extract;
 int extract_bootsector;
+int print_table;
 int add;
 int newfs;
 int check;
@@ -44,7 +45,8 @@ static struct option program_options[] = {
         { "boot2",	required_argument,	0,	'B' },
         { "flat",	no_argument,		0,	'F' },
         { "shuffle",	no_argument,		0,	'S' },
-        { "extractboot",	required_argument,0,	'e' },
+        { "extractboot",	required_argument,0,'e' },
+        { "table", no_argument,           0,'t' },
         { 0 }
 };
 
@@ -66,6 +68,7 @@ static void print_help (char *progname)
 	printf ("  -a, --add              Add files to filesystem\n");
 	printf ("  -x, --extract          Extract all files\n");
 	printf ("  -e, --extractboot FILE Extract boot sector(s) to file(s)\n");
+	printf ("  -t, --table            Print infos on file system\n");
 	printf ("  -c, --check            Check filesystem, use -c -f to fix\n");
 	printf ("  -f, --fix              Fix bugs in filesystem\n");
 	printf ("  -n, --new              Create new filesystem, -s required\n");
@@ -408,6 +411,17 @@ void add_boot (lsxfs_t *fs)
 	}
 }
 
+void print_info(lsxfs_t *fs) {
+    unsigned int track, sector;
+    printf("Track Sector -> HWAddress octal (HWAddress hex), block number\n");
+    for (track=1; track<=77; track++) {
+        for (sector=1; sector<26; sector++ ) {
+            lsxfs_seek_raw(fs, track-1, sector-1);
+            int block = fs->seek / LSXFS_BSIZE;
+            printf("%d %d -> 0%lo (0x%lx), block %d\n", track-1, sector, fs->seek, fs->seek, block);
+        }
+    }
+}
 
 int main (int argc, char **argv)
 {
@@ -416,7 +430,7 @@ int main (int argc, char **argv)
 	lsxfs_inode_t inode;
 
     for (;;) {
-        key = getopt_long (argc, argv, "vaxncfFSs:be:B:Vh",
+        key = getopt_long (argc, argv, "vaxncfFSst:be:B:Vh",
                            program_options, 0);
         if (key == -1)
             break;
@@ -458,6 +472,9 @@ int main (int argc, char **argv)
                 boot_sector_file_base = optarg;
                 ++extract_bootsector;
                 break;
+            case 't':
+                ++print_table;
+                break;
             case 'V':
                 printf ("%s\n", program_version);
                 return 0;
@@ -470,12 +487,14 @@ int main (int argc, char **argv)
         }
     }
     i = optind;
-    if ((! add && i != argc-1) || (add && i >= argc-1) ||
-        (extract + newfs + check + add > 1) ||
-        (!flat && (! boot_sector ^ ! boot_sector2)) ||
-        (newfs && bytes < 5120)) {
-        print_help (argv[0]);
-        return -1;
+    if (!print_table) {
+        if ((!add && i != argc - 1) || (add && i >= argc - 1) ||
+            (extract + newfs + check + add > 1) ||
+            (!flat && (!boot_sector ^ !boot_sector2)) ||
+            (newfs && bytes < 5120)) {
+            print_help(argv[0]);
+            return -1;
+        }
     }
 
 	if (newfs) {
@@ -506,6 +525,11 @@ int main (int argc, char **argv)
                      (add != 0) || (boot_sector && boot_sector2))) {
         fprintf (stderr, "%s: cannot open\n", argv[i]);
         return -1;
+    }
+
+    if (print_table) {
+        print_info(&fs);
+        return 0;
     }
 
 	if (extract) {
