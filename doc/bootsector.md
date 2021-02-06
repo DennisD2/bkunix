@@ -876,7 +876,12 @@ Secondary sector, track=1, sector=21, offset=13400, expected=5000
 Secondary sector, track=0, sector=24, offset=5600, expected=5600
 ```
 
-Next step is extract these two files and then to recreate a bootable root disk.
+I know that the line with *track=1, sector=21* is wrong. It must be
+*track=0, sector=21* because I can see that in the file ```root.dsk```
+and in the disassembled code.
+(TODO-1: fix this)
+
+Next step is extract these two files
 
 # Content of sectors
 
@@ -960,6 +965,7 @@ The header needs to be fixed, so that text section is 602 bytes.
 
 This gives the disassembly below. I do not know why the disassembler here 
 relocates at 02000:
+(TODO-2: Fix this, the code should start at 0).
 ```asm
          File: abc2
          Type: FMAGIC (0407) non-relocatable
@@ -1193,7 +1199,8 @@ Disassembly of section .text:
 003106 000207              	rts	pc
 003110 010067 117452       	mov	r0, $0122566 <.bss-060344>
 003114 000207              	rts	pc
-003116 071012              	div	(r2), r0
+003116 071012             Next step is extract these two files and then to recreate a bootable root disk.
+ 	div	(r2), r0
 003120 020170 067542       	cmp	r1, *28514(r0)
 003124 072157              	ash	*-(pc), r1
 003126 000072              	.word	58
@@ -1219,4 +1226,34 @@ cmp -l abc2 ../../fsutil/rxboot2
 601  67  37
 603  52 166
 604 237 377
-``` 
+```
+# Creating a new root disk
+The boot disk contains of the following ingredients:
+* empty file system, created with lsxutil with size 256000 bytes
+* Bootsector (track 1, sector 1) filled with file ``` rxboot```
+  
+* Secondary Bootsector with length of 5 sectors, 
+  filled from file ```rxboot2``` in tracks-sectors:
+  * track=1, sector=4, offset=07200
+  * track=1, sector=7, offset=010000
+  * track=1, sector=10, offset=010600
+  * track=0, sector=21, offset=05000
+  * track=0, sector=24, offset=0560
+  
+* Blocks for the track/sectors used above need to be marked as ```used```
+  to prevent them overwritten by following steps
+  * track 1, sector 1  is block 6
+  * track 1, sector 4  is block 7
+  * track 1, sector 7  is block 8
+  * track 1, sector 10 is block 8
+  * track 0, sector 21 is block 5
+  * track 0, sector 24 is block 6
+  
+  So blocks 5,6,7,8 must be marked as used.
+  Mapping of (track,sector) to block number can be found by executing
+  ```lsx-util --table root.dsk```
+  
+* Creation of directories, and all files required for boot disk with fsutil.
+
+Next step: add code to lsxutil to allow marking blocks as used.
+
