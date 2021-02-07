@@ -260,8 +260,11 @@ show how to compile.
 # How to add a libc.a
 See file [libc.md](doc/libc.md)
 
-# Bootstrap procedure of operating system
+# Bootsector recreation
 See file [bootsector.md](doc/bootsector.md)
+
+# Bootstrap procedure of operating system
+See file [bootstrap.md](doc/bootstrap.md)
 
 # Create a new root disk
 First step to do is to try to create a new root disk with the 
@@ -271,6 +274,7 @@ This shows that the ```lsx-util``` works as excpected.
 Later in the process we could provide additional content, 
 like new commands or a changed Kernel and create the root disk.
 
+The code below is for bkunix:
 ```
 # root disk
 u6-fsutil -n -s256000 -bsys/boot1 -Bsys/boot2lo root.dsk

@@ -1249,11 +1249,31 @@ The boot disk contains of the following ingredients:
   * track 0, sector 21 is block 5
   * track 0, sector 24 is block 6
   
-  So blocks 5,6,7,8 must be marked as used.
-  Mapping of (track,sector) to block number can be found by executing
-  ```lsx-util --table root.dsk```
-  
-* Creation of directories, and all files required for boot disk with fsutil.
+  So blocks 5,6,7,8 are used in the original. 
 
-Next step: add code to lsxutil to allow marking blocks as used.
+From the files above, I have then renamed ```abc``` to
+```new_rxboot``` and ```abc2``` to ```new_rxboot2```.
 
+I have then patched the ```rxboot``` to use consecutive sectors
+for secondary boot sector:
+
+* track 1, sector 1  is block 6
+* track 1, sector 4  is block 7
+* track 1, sector 7  is block 8
+* track 1, sector 10 is block 8
+* track 1, sector **12** is block ?
+* track 1, sector **15** is block ?
+
+With the patched primary bootsector, an empty root filesystem
+with all boot sectors can be created with the following command:
+```shell
+../../fsutil/lsx-util -v -v -v -v -v --new -S --size=256000 --boot=new_rxboot --boot2=new_rxboot2 newroot.dsk
+```
+
+Of course there is no UNIX on the root disk, but the bootstrap
+should come to the output line:
+```
+rx boot:
+``````
+
+Continuation of this story can be found [here](bootstrap.md).
