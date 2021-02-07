@@ -64,8 +64,40 @@ Breakpoint, PC: 000200 (MOV PC,R2)
 # Status
 Code breaks here:
 ```asm
+Step expired, PC: 000220 (MOV (R2)+,(R1)+)
+sim> s
+
+Step expired, PC: 000222 (CMP R1,#60132)
+sim> s
+
+Step expired, PC: 000226 (BCS 220)
+sim> s
+
+Step expired, PC: 000220 (MOV (R2)+,(R1)+)
+sim> s
+
+Step expired, PC: 000222 (CMP R1,#60132)
+sim> ex r1
+R1:     057006
+sim> br 230
+sim> cont
+
+Breakpoint, PC: 000230 (JMP (SP)) <---------- a far jump 
+sim> ex sp
+SP:     057000
+
 Step expired, PC: 057032 (TST R0)
-sim> ex -m 57030-57076
+sim> ex -m 57000-57076
+57000:  MOV PC,R2
+57002:  TST -(R2)
+57004:  MOV #57000,SP
+57010:  MOV SP,R1
+57012:  CMP PC,R1
+57014:  BCC 57032
+57016:  RESET
+57020:  MOV (R2)+,(R1)+
+57022:  CMP R1,#60132
+57026:  BCS 57020
 57030:  JMP (SP)
 57032:  TST R0
 57034:  BEQ 57044
@@ -123,3 +155,6 @@ sim> ex -m 57750-57770
 57770:  HALT
 ```
 
+# Status
+There must be some ROM code at these high addresses (57xxx).
+For example, for 
