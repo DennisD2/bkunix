@@ -96,6 +96,56 @@ int lsxfs_install_single_boot (lsxfs_t *fs, const char *filename)
     return 1;
 }
 
+int lsxfs_install_boot_lsx(lsxfs_t *fs, const char *filename,
+                        const char *filename2)
+{
+    int fd, fd2, n, n2;
+    unsigned char buf [768];
+
+    fd = open (filename, 0);
+    if (fd < 0)
+        return 0;
+    fd2 = open (filename2, 0);
+    if (fd2 < 0) {
+        close (fd);
+        return 0;
+    }
+
+    /* Check a.out header. */
+    if (read (fd, buf, 16) != 16 || ! (buf[0] == 7 && buf[1] == 1)) {
+        failed:		close (fd);
+        close (fd2);
+        return 0;
+    }
+    int buf2_offset=128;
+    if (read (fd2, buf+buf2_offset, 16) != 16 || ! (buf[buf2_offset] == 7 && buf[buf2_offset+1] == 1))
+        goto failed;
+
+    /* Check .text+.data segment size. */
+    n = buf[2] + (buf[3] << 8) + buf[4] + (buf[5] << 8);
+    n2 = buf[buf2_offset+2] + (buf[buf2_offset+3] << 8) + buf[buf2_offset+4] + (buf[buf2_offset+5] << 8);
+    if (n > 128 || n2 > 768 - 128)
+        goto failed;
+    if (verbose)
+        printf ("Boot sector size: %d + %d bytes\n", n, n2);
+
+    /* read in first sector file */
+    if (read (fd, buf, n) != n)
+        goto failed;
+    /* read in secondary boot sector file into buf at offset 128 */
+    if (read (fd2, buf+128, 768-128) != 640)
+        goto failed;
+    close (fd);
+    close (fd2);
+
+    /* write out, this should fill track-sectors 1-1, 1-4, 1-7, 1-10, 0-21, 0-24 */
+    /* boot sector is relying on that */
+    if (! lsxfs_seek (fs, 0))
+        return 0;
+    if (! lsxfs_write (fs, buf, 768))
+        return 0;
+    return 1;
+}
 
 static int free_block (lsxfs_t *fs, unsigned int bno)
 {

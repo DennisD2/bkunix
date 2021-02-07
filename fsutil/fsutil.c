@@ -400,7 +400,7 @@ void add_boot (lsxfs_t *fs)
 			printf ("Boot sector %s installed\n", boot_sector);
 		}
 	} else if (boot_sector && boot_sector2) {
-		if (! lsxfs_install_boot (fs, boot_sector,
+		if (! lsxfs_install_boot_lsx (fs, boot_sector,
 		    boot_sector2)) {
 			fprintf (stderr, "%s: incorrect boot sector\n",
 				boot_sector);
