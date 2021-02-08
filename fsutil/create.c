@@ -100,7 +100,7 @@ int lsxfs_install_boot_lsx(lsxfs_t *fs, const char *filename,
                         const char *filename2)
 {
     int fd, fd2, n, n2;
-    unsigned char buf [768];
+    unsigned char buf [2*512];
 
     fd = open (filename, 0);
     if (fd < 0)
@@ -138,12 +138,33 @@ int lsxfs_install_boot_lsx(lsxfs_t *fs, const char *filename,
     close (fd);
     close (fd2);
 
-    /* write out, this should fill track-sectors 1-1, 1-4, 1-7, 1-10, 0-21, 0-24 */
-    /* boot sector is relying on that */
-    if (! lsxfs_seek (fs, 0))
+    /* write out, this should fill track-sectors 1-1 for primary and
+     * some arbitrary for the remaining 5 sectors
+     * boot sector is relying on 1-1 for primary */
+    /* write primary boot sector */
+    if (! lsxfs_seek (fs, 0)) {
         return 0;
-    if (! lsxfs_write (fs, buf, 768))
+    }
+    if (! lsxfs_write (fs, buf, 128)) {
         return 0;
+    }
+
+    /* write secondary boot sector */
+    /* Allocate two blocks for our 5 sectors */
+    unsigned int blockNo, blockNo2;
+    lsxfs_block_alloc(fs, &blockNo);
+    lsxfs_block_alloc(fs, &blockNo2);
+    printf ("Block numbers for secondary boot sectors: %d, %d (adresses 0%o, 0%o)\n", blockNo, blockNo2,
+            blockNo*512, blockNo2*512);
+
+    if (! lsxfs_write_block(fs, (short)blockNo, (char *)(buf+128))) {
+        fprintf (stderr, "lsxfs_install_boot_lsx: write error at block %d\n", blockNo);
+        return 0;
+    }
+    if (! lsxfs_write_block(fs, (short)blockNo2, (char *)(buf+128+512))) {
+        fprintf (stderr, "lsxfs_install_boot_lsx: write error (2) at block %d\n", blockNo2);
+        return 0;
+    }
     return 1;
 }
 
@@ -262,11 +283,13 @@ int lsxfs_create (lsxfs_t *fs, const char *filename, unsigned long bytes)
 
     /* make sure the file is of proper size - for SIMH */
     if (lseek(fs->fd, bytes-1, SEEK_SET) == bytes-1) {
-        if (write(fs->fd, "", 1) != 1)
+        if (write(fs->fd, "", 1) != 1) {
             /*ignore error*/;
+        }
         lseek(fs->fd, 0, SEEK_SET);
-    } else
+    } else {
         return 0;
+    }
 	/* build a list of free blocks */
 	free_block (fs, 0);
 	for (n = fs->fsize - 1; n >= fs->isize + 2; n--)
