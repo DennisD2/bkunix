@@ -96,15 +96,18 @@ int lsxfs_install_single_boot (lsxfs_t *fs, const char *filename)
     return 1;
 }
 
+#define PRIMARY_SECTOR_SIZE 128
+#define SECONDARY_SECTOR_SIZE 2*512
+
 int lsxfs_install_boot_lsx(lsxfs_t *fs, const char *filename,
                         const char *filename2)
 {
     int fd, fd2, n1, n2;
-    unsigned char buf1 [128];
-    unsigned char buf2 [2*512];
+    unsigned char buf1 [PRIMARY_SECTOR_SIZE];
+    unsigned char buf2 [SECONDARY_SECTOR_SIZE];
 
-    memset( buf1, 0, 128);
-    memset( buf2, 0, 2*512);
+    memset( buf1, 0, PRIMARY_SECTOR_SIZE);
+    memset( buf2, 0, SECONDARY_SECTOR_SIZE);
 
     fd = open (filename, 0);
     if (fd < 0)
@@ -127,7 +130,7 @@ int lsxfs_install_boot_lsx(lsxfs_t *fs, const char *filename,
     /* Check .text+.data segment size. */
     n1 = buf1[2] + (buf1[3] << 8) + buf1[4] + (buf1[5] << 8);
     n2 = buf2[2] + (buf2[3] << 8) + buf2[4] + (buf2[5] << 8);
-    if (n1 > 128 || n2 > 768 - 128)
+    if (n1 > PRIMARY_SECTOR_SIZE || n2 > SECONDARY_SECTOR_SIZE)
         goto failed;
     if (verbose)
         printf ("Boot sector size: %d + %d bytes\n", n1, n2);
@@ -148,7 +151,7 @@ int lsxfs_install_boot_lsx(lsxfs_t *fs, const char *filename,
     if (! lsxfs_seek (fs, 0)) {
         return 0;
     }
-    if (! lsxfs_write (fs, buf1, 128)) {
+    if (! lsxfs_write (fs, buf1, PRIMARY_SECTOR_SIZE)) {
         return 0;
     }
 
@@ -158,13 +161,13 @@ int lsxfs_install_boot_lsx(lsxfs_t *fs, const char *filename,
     lsxfs_block_alloc(fs, &blockNo);
     lsxfs_block_alloc(fs, &blockNo2);
     printf ("Block numbers for secondary boot sectors: %d, %d (adresses 0%o, 0%o)\n", blockNo, blockNo2,
-            blockNo*512, blockNo2*512);
+            blockNo*LSXFS_BSIZE, blockNo2*LSXFS_BSIZE);
 
     if (! lsxfs_write_block(fs, (short)blockNo, (char *)(buf2))) {
         fprintf (stderr, "lsxfs_install_boot_lsx: write error at (first) block %d\n", blockNo);
         return 0;
     }
-    if (! lsxfs_write_block(fs, (short)blockNo2, (char *)(buf2+512))) {
+    if (! lsxfs_write_block(fs, (short)blockNo2, (char *)(buf2+LSXFS_BSIZE))) {
         fprintf (stderr, "lsxfs_install_boot_lsx: write error at (second) block %d\n", blockNo2);
         return 0;
     }
