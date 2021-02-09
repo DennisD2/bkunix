@@ -99,8 +99,12 @@ int lsxfs_install_single_boot (lsxfs_t *fs, const char *filename)
 int lsxfs_install_boot_lsx(lsxfs_t *fs, const char *filename,
                         const char *filename2)
 {
-    int fd, fd2, n, n2;
-    unsigned char buf [2*512];
+    int fd, fd2, n1, n2;
+    unsigned char buf1 [128];
+    unsigned char buf2 [2*512];
+
+    memset( buf1, 0, 128);
+    memset( buf2, 0, 2*512);
 
     fd = open (filename, 0);
     if (fd < 0)
@@ -112,28 +116,27 @@ int lsxfs_install_boot_lsx(lsxfs_t *fs, const char *filename,
     }
 
     /* Check a.out header. */
-    if (read (fd, buf, 16) != 16 || ! (buf[0] == 7 && buf[1] == 1)) {
+    if (read (fd, buf1, 16) != 16 || ! (buf1[0] == 7 && buf1[1] == 1)) {
         failed:		close (fd);
         close (fd2);
         return 0;
     }
-    int buf2_offset=128;
-    if (read (fd2, buf+buf2_offset, 16) != 16 || ! (buf[buf2_offset] == 7 && buf[buf2_offset+1] == 1))
+    if (read (fd2, buf2, 16) != 16 || ! (buf2[0] == 7 && buf2[1] == 1))
         goto failed;
 
     /* Check .text+.data segment size. */
-    n = buf[2] + (buf[3] << 8) + buf[4] + (buf[5] << 8);
-    n2 = buf[buf2_offset+2] + (buf[buf2_offset+3] << 8) + buf[buf2_offset+4] + (buf[buf2_offset+5] << 8);
-    if (n > 128 || n2 > 768 - 128)
+    n1 = buf1[2] + (buf1[3] << 8) + buf1[4] + (buf1[5] << 8);
+    n2 = buf2[2] + (buf2[3] << 8) + buf2[4] + (buf2[5] << 8);
+    if (n1 > 128 || n2 > 768 - 128)
         goto failed;
     if (verbose)
-        printf ("Boot sector size: %d + %d bytes\n", n, n2);
+        printf ("Boot sector size: %d + %d bytes\n", n1, n2);
 
     /* read in first sector file */
-    if (read (fd, buf, n) != n)
+    if (read (fd, buf1, n1) != n1)
         goto failed;
-    /* read in secondary boot sector file into buf at offset 128 */
-    if (read (fd2, buf+128, 768-128) != 640)
+    /* read in secondary boot sector file */
+    if (read (fd2, buf2, n2) != n2)
         goto failed;
     close (fd);
     close (fd2);
@@ -145,7 +148,7 @@ int lsxfs_install_boot_lsx(lsxfs_t *fs, const char *filename,
     if (! lsxfs_seek (fs, 0)) {
         return 0;
     }
-    if (! lsxfs_write (fs, buf, 128)) {
+    if (! lsxfs_write (fs, buf1, 128)) {
         return 0;
     }
 
@@ -157,12 +160,12 @@ int lsxfs_install_boot_lsx(lsxfs_t *fs, const char *filename,
     printf ("Block numbers for secondary boot sectors: %d, %d (adresses 0%o, 0%o)\n", blockNo, blockNo2,
             blockNo*512, blockNo2*512);
 
-    if (! lsxfs_write_block(fs, (short)blockNo, (char *)(buf+128))) {
-        fprintf (stderr, "lsxfs_install_boot_lsx: write error at block %d\n", blockNo);
+    if (! lsxfs_write_block(fs, (short)blockNo, (char *)(buf2))) {
+        fprintf (stderr, "lsxfs_install_boot_lsx: write error at (first) block %d\n", blockNo);
         return 0;
     }
-    if (! lsxfs_write_block(fs, (short)blockNo2, (char *)(buf+128+512))) {
-        fprintf (stderr, "lsxfs_install_boot_lsx: write error (2) at block %d\n", blockNo2);
+    if (! lsxfs_write_block(fs, (short)blockNo2, (char *)(buf2+512))) {
+        fprintf (stderr, "lsxfs_install_boot_lsx: write error at (second) block %d\n", blockNo2);
         return 0;
     }
     return 1;
