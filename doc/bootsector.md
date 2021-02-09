@@ -1270,6 +1270,41 @@ with all boot sectors can be created with the following command:
 ../../fsutil/lsx-util -v -v -v -v -v --new -S --size=256000 --boot=new_rxboot --boot2=new_rxboot2 newroot.dsk
 ```
 
+```
+Boot sector size: 120 + 602 bytes
+deskew 0 (00) -> track 1 - sector 0 = 3328 (06400)
+seek 0, block 0 - hw 3328 (6400)
+deskew 128 (0200) -> track 1 - sector 3 = 3712 (07200)
+seek 128, block 0 - hw 3712 (7200)
+allocate new block 9 from slot 91
+allocate new block 10 from slot 90
+Block numbers for secondary boot sectors: 9, 10 (adresses 011000, 012000)
+
+deskew 4608 (011000) -> track 2 - sector 4 = 7168 (016000)
+seek 4608, block 9 - hw 7168 (16000)
+deskew 4736 (011200) -> track 2 - sector 7 = 7552 (016600)
+seek 4736, block 9 - hw 7552 (16600)
+deskew 4864 (011400) -> track 2 - sector 10 = 7936 (017400)
+seek 4864, block 9 - hw 7936 (17400)
+deskew 4992 (011600) -> track 2 - sector 13 = 8320 (020200)
+seek 4992, block 9 - hw 8320 (20200)
+deskew 5120 (012000) -> track 2 - sector 16 = 8704 (021000)
+seek 5120, block 10 - hw 8704 (21000)
+
+deskew 5120 (012000) -> track 2 - sector 16 = 8704 (021000)
+seek 5120, block 10 - hw 8704 (21000)
+deskew 5248 (012200) -> track 2 - sector 19 = 9088 (021600)
+seek 5248, block 10 - hw 9088 (21600)
+deskew 5376 (012400) -> track 2 - sector 22 = 9472 (022400)
+seek 5376, block 10 - hw 9472 (22400)
+deskew 5504 (012600) -> track 2 - sector 25 = 9856 (023200)
+seek 5504, block 10 - hw 9856 (23200)
+deskew 5632 (013000) -> track 2 - sector 2 = 6912 (015400)
+seek 5632, block 11 - hw 6912 (15400)
+Boot sectors new_rxboot and new_rxboot2 installed
+
+```
+
 Of course there is no UNIX on the root disk, but the bootstrap
 should come to the output line:
 ```

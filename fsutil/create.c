@@ -171,6 +171,7 @@ int lsxfs_install_boot_lsx(lsxfs_t *fs, const char *filename,
         fprintf (stderr, "lsxfs_install_boot_lsx: write error at (second) block %d\n", blockNo2);
         return 0;
     }
+
     return 1;
 }
 

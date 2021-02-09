@@ -9,17 +9,20 @@ extern int verbose;
 
 static unsigned long deskew (unsigned long address)
 {
-	unsigned long track, sector;
+	unsigned long track, sector, descewed;
 	unsigned int offset = address % 128;
 
 	sector = (address / 128) * 3 % 26;
 	track = (address / 128) / 26 + 1;
 	if (track == 77)
 		track = 0;
+
+    descewed = (track * 26 + sector) * 128 + offset;
     if (verbose > 3) {
-        printf("deskew %ld -> track %ld - sector %ld\n", address, track, sector);
+        printf("deskew %ld (0%lo) -> track %ld - sector %ld = %ld (0%lo)\n", address, address,
+               track, sector, descewed, descewed);
     }
-	return (track * 26 + sector) * 128 + offset;
+	return descewed;
 }
 
 int lsxfs_seek (lsxfs_t *fs, unsigned long offset)
