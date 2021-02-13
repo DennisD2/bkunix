@@ -155,6 +155,105 @@ sim> ex -m 57750-57770
 57770:  HALT
 ```
 
-# Status
-There must be some ROM code at these high addresses (57xxx).
-For example, for 
+Because reloading of secondary bootsectors did not work after my changes,
+I have to study the first bootsector code in detail.
+
+
+rxboot.s content:
+```asm
+/
+/	rxboot.p -- rx11 skeleton bootstrap program.
+/	this program takes only one sector.
+/	rxboot.p is stored in boot location
+/		sector	1
+/		track	1
+/	pathname bootstrap is located in location
+/		** see l_sectr table
+/	this program assumes that the bootstrap rom
+/	leaves the unit number (0,1) in register r0.
+/	this program in turn leaves the unit number
+/	(0,1) in register r0 when it jumps to the
+/	pathname bootstrap program.
+/
+/	modified by ljh for new rx layout 2/10/77
+rxcs	= 0177170 /command and status register of RX02 floppy disk device
+rxdb	= rxcs+2  /multi purpose data register
+go	= 1           /go bit (of rxcs) bit 0 starts command input
+empty	= 2       /empty buffer - value of function bits bit 1-3
+intlev	= 2
+rdrx	= 6     /read sector instruction
+unit_1	= 020   /UNITSEL bit 4
+done	= 040   /done bit (of rxcs) bit 5
+treq	= 0200  /TR bit 7
+initrx	= 040000
+halt	= 0
+nop	= 0240
+	.text
+	.globl	rxboot,_rxboot
+_rxboot:
+rxboot:
+0   	nop			/this is required by the rom
+2	    tst	r0		/unit number is in r0 (0,1) - tst on value Zero
+4	    beq	0f      /jump forward to label 0 - if value 0
+6	    bis	$unit_1,readop	/set instruction to read unit 1 (by or-ing value unit_1 to readop)
+    0:
+14	    mov	$rxcs,r1	/control and status register to r1
+20	    mov	$rxdb,r2	/data and sector/track addr reg to r2
+24	    mov	$l_sctr, r4	/set address of secter and track table to r4
+    next:
+30	    bit	$done,(r1)  /test if done flag is set in rxcs 
+34	    beq	next        /loop back to label next until drive is ready
+36	    mov	(pc)+,(r1)	/read sector instruction to rxcs, get it from next ".word" This triggers read
+    readop:
+	    .word	rdrx+go		/read sector instruction, can be modified by unit number
+    1:
+42	    tstb	(r1)		/transfer request flag - check if rxcs==0
+44	    beq	1b              /loop back to label 1 while (r1)==0 (checks for Z==1) 
+46	    tstb	(r4)		/last block ? check if (r4)==0
+50	    beq	rxboot+0200	/ if yes, jump to program
+52	    movb	(r4)+, (r2)	/more to go. setup for next sector (byte)
+    2:
+54	    tstb	(r1)		/transfer request flag - check if rxcs==0
+56	    beq	2b              /loop back to label 2 while (r1)==0 (checks for Z==1) 
+60	    movb	(r4)+, (r2)	/track address (byte)
+    3:
+62	    tstb	(r1)		/read complete ?
+    efloop:
+64      beq	3b              /not yet
+66      bmi	erflag		    /treq on -- error , bit 15 is set 
+70      tst	(r1)		    /error flag
+72      bmi	erflag
+74      mov	bufaddr,r0	    /current buffer address
+100     mov	$empty+go,(r1)	/empty rx function to rxcs 
+104     br	1f              /jump forward to label 1 
+106	    movb	(r2),(r0)+	/empty buffer - is this a byte-wise copy from RX02?
+	                    / in r2 the rxdb is located, is this the data byte?
+	                    / in r0 bufaddr is located - set initial to 0200
+    1:
+110     tstb	(r1)		/transfer request flag
+112     bmi	efloop		    /br if ready - we read next byte if so
+114     beq	1b		        /wait for flag - wait until we can continue reading
+116     tst	(r1)		    /error flag
+120     bmi	erflag          /Something went wrong
+122     mov	r0,bufaddr	    /all fine, next set of 'empty' locations
+                            /r0 was incremented in 'efloop' 
+126     clr	r0		        /setup unit number in r0 - used for unit number again...
+130     cmpb	$rdrx+go,readop	/is unit number zero
+136     adc	r0		        /id unit number 0,1 - set r0 to correct value (0 or 1)?
+140     br	next		    /read another sector
+    erflag:
+142     mov	$initrx,(r1)	/initialize heads -- read first sector
+146     halt			    /error
+150    	br	rxboot		    /restart
+    l_sctr:
+                    / table of block addresses for boot prog.
+152     .byte 4, 1		/ sector 4	track 1
+154     .byte 7, 1		/ sector 7	track 1
+156     .byte 10, 1		/ sector 10	track 1
+160     .byte 21, 0		/ sector 21	track 0
+162     .byte 24, 0		/ sector 24	track 0
+164     .word 0			/ end of table
+    bufaddr:
+166     .word 0200		/start of pathname bootstrap
+170     .even
+```
