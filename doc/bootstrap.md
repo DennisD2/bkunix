@@ -1,5 +1,13 @@
 # Debugging the bootstrap
 
+The text below explains what I needed to do to set up the bootrap code.
+I had an issue with wrong block numbers to load for secondary boot
+sectors. After fixing that, the boot process came up to the point where kernel
+```lsx``` would be loaded. 
+
+So I keep the text below only for historical purpose, because it also shows how 
+to trace problems with simh debugging feature.
+
 After a root disk has been created that contains all
 parts of the two-staged boot process, I could start
 the boot process but it immediately stops with an HALT
@@ -9,7 +17,7 @@ New root disk
 is in file ```newroot.dsk```. For now, it contains only
 a empty valid file system and the boot sectors filled.
 
-simh ini ```newlsx.ini``` file for debugging the bootstrap.
+simh initialization file ```newlsx.ini``` for debugging the bootstrap:
 ```
 at rx0 newroot.dsk
 set cpu 48k
@@ -157,7 +165,6 @@ sim> ex -m 57750-57770
 
 Because reloading of secondary bootsectors did not work after my changes,
 I have to study the first bootsector code in detail.
-
 
 rxboot.s content:
 ```asm
