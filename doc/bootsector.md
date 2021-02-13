@@ -31,15 +31,15 @@ rxboot.s content:
 /	pathname bootstrap program.
 /
 /	modified by ljh for new rx layout 2/10/77
-rxcs	= 0177170
-rxdb	= rxcs+2
-go	= 1
-empty	= 2
+rxcs	= 0177170 /command and status register of RX02 floppy disk device
+rxdb	= rxcs+2  /multi purpose data register
+go	= 1           /go bit (of rxcs) bit 0 starts command input
+empty	= 2       /empty buffer - value of function bits bit 1-3
 intlev	= 2
-rdrx	= 6
-unit_1	= 020
-done	= 040
-treq	= 0200
+rdrx	= 6     /read sector instruction
+unit_1	= 020   /UNITSEL bit 4
+done	= 040   /done bit (of rxcs) bit 5
+treq	= 0200  /TR bit 7
 initrx	= 040000
 halt	= 0
 nop	= 0240
@@ -1233,38 +1233,12 @@ The boot disk contains of the following ingredients:
 * Bootsector (track 1, sector 1) filled with file ``` rxboot```
   
 * Secondary Bootsector with length of 5 sectors, 
-  filled from file ```rxboot2``` in tracks-sectors:
-  * track=1, sector=4, offset=07200
-  * track=1, sector=7, offset=010000
-  * track=1, sector=10, offset=010600
-  * track=0, sector=21, offset=05000
-  * track=0, sector=24, offset=0560
-  
-* Blocks for the track/sectors used above need to be marked as ```used```
-  to prevent them overwritten by following steps
-  * track 1, sector 1  is block 6
-  * track 1, sector 4  is block 7
-  * track 1, sector 7  is block 8
-  * track 1, sector 10 is block 8
-  * track 0, sector 21 is block 5
-  * track 0, sector 24 is block 6
-  
-  So blocks 5,6,7,8 are used in the original. 
+  filled from file ```rxboot2``` in tracks-sectors
 
 From the files above, I have then renamed ```abc``` to
 ```new_rxboot``` and ```abc2``` to ```new_rxboot2```.
 
-I have then patched the ```rxboot``` to use consecutive sectors
-for secondary boot sector:
-
-* track 1, sector 1  is block 6
-* track 1, sector 4  is block 7
-* track 1, sector 7  is block 8
-* track 1, sector 10 is block 8
-* track 1, sector **12** is block ?
-* track 1, sector **15** is block ?
-
-With the patched primary bootsector, an empty root filesystem
+With these parts, an empty root filesystem
 with all boot sectors can be created with the following command:
 ```shell
 ../../fsutil/lsx-util -v -v -v -v -v --new -S --size=256000 --boot=new_rxboot --boot2=new_rxboot2 newroot.dsk
@@ -1303,8 +1277,41 @@ deskew 5632 (013000) -> track 2 - sector 2 = 6912 (015400)
 seek 5632, block 11 - hw 6912 (15400)
 Boot sectors new_rxboot and new_rxboot2 installed
 
+sim> ex -o 150-164
+150:    000713
+152:    001004
+154:    001007
+156:    001012
+160:    001015
+162:    001020
+164:    000000
+
+sim> ex -h 150-164
+150:    01CB
+152:    0204
+154:    0207
+156:    020A
+160:    020D
+162:    0210
+164:    0000
+
+0006540 000733 012711 040000 000000 031713 001104 001007 001012
+0006560 001015 001020 000000 000200 000000 000000 000000 000000
+
+0006540 01db 15c9 4000 0000 33cb 0244 0207 020a
+0006560 020d 0210 0000 0080 0000 0000 0000 0000
+
 ```
 
+Now, the 5 secondary bootsectors need to be patched at addresses 0152-162
+* From 1-4 to 2-5
+* From 1-7 to 2-8
+* From 1-10 to 2-B
+* From 0-21 to 2-E
+* From 0-24 to 2-11 (hex!)
+
+
+Having done this, the boot disk is *bootable*.
 Of course there is no UNIX on the root disk, but the bootstrap
 should come to the output line:
 ```
@@ -1312,3 +1319,6 @@ rx boot:
 ``````
 
 Continuation of this story can be found [here](bootstrap.md).
+
+TODO: all sector numbers are +1 higher than I had expected.
+So my calculation hw address on disk <-> track , sector need to be analyzed and fixed.
