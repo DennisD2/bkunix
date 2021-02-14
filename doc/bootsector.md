@@ -1322,3 +1322,6 @@ Continuation of this story can be found [here](bootstrap.md).
 
 TODO: all sector numbers are +1 higher than I had expected.
 So my calculation hw address on disk <-> track , sector need to be analyzed and fixed.
+
+# cut of 16 byte header
+dd bs=1 skip=16 if=new_rxboot2 of=new_rxboot2.bin

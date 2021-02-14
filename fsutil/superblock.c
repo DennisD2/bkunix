@@ -19,7 +19,7 @@ static unsigned long deskew (unsigned long address)
 
     descewed = (track * 26 + sector) * 128 + offset;
     if (verbose > 3) {
-        printf("deskew %ld (0%lo) -> track %ld - sector %ld = %ld (0%lo)\n", address, address,
+        printf("  deskew %ld (0%lo) = (track=%ld , sector=%ld) -> %ld (0%lo)\n", address, address,
                track, sector, descewed, descewed);
     }
 	return descewed;
@@ -31,11 +31,12 @@ int lsxfs_seek (lsxfs_t *fs, unsigned long offset)
 
 	hw_address = deskew (offset);
 	if (verbose > 3) {
-        printf("seek %ld, block %ld - hw %d (%o)\n", offset, offset / 512, hw_address, hw_address);
+        printf("seek %ld (0%lo), block %ld -> hw address %ld (0%lo)\n", offset, offset,
+               offset / 512, hw_address, hw_address);
     }
 	if (lseek (fs->fd, hw_address, 0) < 0) {
 		if (verbose)
-			printf ("error seeking %ld, block %ld - hw %ld (%o)\n",
+			printf ("error seeking %ld, block %ld - hw %ld (0%o)\n",
 				offset, offset / 512, hw_address, hw_address);
 		return 0;
 	}
@@ -50,11 +51,11 @@ int lsxfs_seek_raw (lsxfs_t *fs, unsigned int track, unsigned int sector)
     unsigned long hw_address = (track * 26 + sector) * 128;
 
     if (verbose > 3) {
-        printf("seek (%d,%d) - hw %d (%o)\n", track, sector, hw_address, hw_address);
+        printf("seek raw (track=%d, sector=%d) -> hw %ld (0%lo)\n", track, sector, hw_address, hw_address);
     }
     if (lseek (fs->fd, hw_address, 0) < 0) {
         if (verbose)
-            printf ("error seeking (%d,%d) - hw %ld (%o)\n",
+            printf ("error seeking (track=%d, sector=%d) - hw %ld (0%lo)\n",
                     track, sector, hw_address, hw_address);
         return 0;
     }

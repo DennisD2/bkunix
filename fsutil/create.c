@@ -160,7 +160,7 @@ int lsxfs_install_boot_lsx(lsxfs_t *fs, const char *filename,
     unsigned int blockNo, blockNo2;
     lsxfs_block_alloc(fs, &blockNo);
     lsxfs_block_alloc(fs, &blockNo2);
-    printf ("Block numbers for secondary boot sectors: %d, %d (adresses 0%o, 0%o)\n", blockNo, blockNo2,
+    printf ("Block numbers for secondary boot sectors: %d, %d (addresses 0%o, 0%o)\n", blockNo, blockNo2,
             blockNo*LSXFS_BSIZE, blockNo2*LSXFS_BSIZE);
 
     if (! lsxfs_write_block(fs, (short)blockNo, (char *)(buf2))) {
