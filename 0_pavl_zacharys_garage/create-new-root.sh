@@ -12,7 +12,7 @@ cmd="${FSUTIL} -n -S --size=256000 --boot=../new_rxboot --boot2=../new_rxboot2 n
 echo "Executing: $cmd"
 $cmd
 
-# Prepare sec. boot sec
+# Prepare secondary boot sectors file
 dd bs=1 skip=16 if=../new_rxboot2 of=boot2
 cmd="${FSUTIL} -a newroot.dsk boot2"
 echo "Executing: $cmd"
@@ -28,12 +28,13 @@ ${FSUTIL} -a newroot.dsk lib/ lib/as2 lib/c0 lib/c1 lib/c2 lib/crt0.o lib/liba.a
 # OLD ${FSUTIL} -a newroot.dsk dev/ dev/tty8!c0:0 dev/fd0!b0:0 dev/fd1!b0:1
 ${FSUTIL} -c newroot.dsk
 ${FSUTIL} -v newroot.dsk
+# Dump octal dump, for documentation purpose
 od -o newroot.dsk >newroot.odo
 
 echo "Please do not forget to fix block numbers of secondary boot sectors in primary sector table!"
 exit 0
 
-rm -rf z
+#rm -rf z
 #mkdir -p z
 #cd z
 #$FSUTIL -x ../newroot.dsk

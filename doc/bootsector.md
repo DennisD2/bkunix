@@ -1199,8 +1199,7 @@ Disassembly of section .text:
 003106 000207              	rts	pc
 003110 010067 117452       	mov	r0, $0122566 <.bss-060344>
 003114 000207              	rts	pc
-003116 071012             Next step is extract these two files and then to recreate a bootable root disk.
- 	div	(r2), r0
+003116 071012               div	(r2), r0
 003120 020170 067542       	cmp	r1, *28514(r0)
 003124 072157              	ash	*-(pc), r1
 003126 000072              	.word	58
@@ -1323,5 +1322,5 @@ Continuation of this story can be found [here](bootstrap.md).
 TODO: all sector numbers are +1 higher than I had expected.
 So my calculation hw address on disk <-> track , sector need to be analyzed and fixed.
 
-# cut of 16 byte header
+# cut of 16 byte header from bootsector files
 dd bs=1 skip=16 if=new_rxboot2 of=new_rxboot2.bin
