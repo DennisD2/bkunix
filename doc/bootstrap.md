@@ -264,3 +264,221 @@ rxboot:
 166     .word 0200		/start of pathname bootstrap
 170     .even
 ```
+
+# Starting the LSX kernel 'lsx'
+
+(Bootsector file 2 is now in ```boot2``` as regular file on disk)
+
+Content of simh after ```lsx``` was loaded (so bootsector2 code mostly worked.
+But the code is loaded to 0 instead of 02000.
+
+```shell
+sim> ex -m 0-600
+0:      BR 40
+2:      IOT
+4:      SEN
+6:      SWAB -(R0)
+10:     SEN
+12:     SWAB -(R1)
+14:     SEN
+16:     SWAB -(R2)
+20:     SEN
+22:     SWAB -(R3)
+24:     SEN
+26:     SWAB -(R4)
+30:     SEN
+32:     SWAB -(R5)
+34:     SEN
+36:     SWAB -(SP)
+40:     JMP 1560
+44:     JMP 140
+50:     HALT
+52:     HALT
+54:     HALT
+56:     HALT
+60:     JMP (R0)
+62:     SWAB -(R0)
+64:     JMP (SP)
+66:     SWAB -(R0)
+70:     HALT
+72:     HALT
+74:     HALT
+76:     HALT
+100:    JMP (R4)+
+102:    SWAB -(R0)
+104:    JMP (R4)+
+106:    SWAB -(R0)
+110:    JSR R0,326
+114:    MOV R2,SP
+116:    JSR R0,326
+122:    MOV R1,@(SP)+
+124:    JSR R0,326
+130:    ADC 4067(SP)
+134:    JMP @2302(R0)
+140:    HALT
+142:    HALT
+144:    HALT
+146:    HALT
+150:    HALT
+152:    HALT
+154:    HALT
+156:    HALT
+160:    HALT
+162:    HALT
+164:    HALT
+166:    HALT
+170:    HALT
+172:    HALT
+174:    HALT
+176:    HALT
+200:    HALT
+202:    HALT
+204:    HALT
+206:    HALT
+210:    HALT
+212:    HALT
+214:    HALT
+216:    HALT
+220:    HALT
+222:    HALT
+224:    HALT
+226:    HALT
+230:    HALT
+232:    HALT
+234:    HALT
+236:    HALT
+240:    HALT
+242:    HALT
+244:    HALT
+246:    HALT
+250:    HALT
+252:    HALT
+254:    HALT
+256:    HALT
+260:    HALT
+262:    HALT
+264:    JMP @(R2)+
+266:    SWAB -(R0)
+270:    MFPS 177774(SP)
+274:    TST 36356
+300:    BNE 310
+302:    JSR R0,316
+306:    CMP -(R1),R0
+310:    MOV 36356,(SP)
+314:    RTI
+316:    TST -(SP)
+320:    CLR -(SP)
+322:    MTPS (SP)+
+324:    BR 330
+326:    MFPS -(SP)
+330:    MOV R1,-(SP)
+332:    MOV SP,R1
+334:    MOV R1,-(SP)
+336:    ADD #12,(SP)
+342:    MOV 4(SP),-(SP)
+346:    BIC #177740,(SP)
+352:    CMP 12(SP),#40000
+360:    BCS 426
+362:    INC 36360
+366:    MOV 2(SP),R1
+372:    MOV #40000,SP
+376:    MOV -(R1),-(SP)
+402:    MOV -(R1),-(SP)
+404:    MOV -(R1),-(SP)
+406:    MOV -(R1),-(SP)
+410:    MOV -(R1),-(SP)
+412:    MOV -(R1),-(SP)
+414:    JSR PC,@(R0)+
+416:    MOV #340,-(SP)
+422:    MTPS (SP)+
+424:    BR 434
+426:    CLR 36360
+432:    JSR PC,@(R0)+
+434:    TST (SP)+
+436:    MOV (SP)+,R1
+440:    CMP 6(SP),#40000
+446:    BCS 474
+450:    SUB #12,R1
+454:    MOV (SP)+,(R1)+
+456:    MOV (SP)+,(R1)+
+460:    MOV (SP)+,(R1)+
+462:    MOV (SP)+,(R1)+
+464:    MOV (SP)+,(R1)+
+466:    SUB #12,R1
+472:    MOV R1,SP
+474:    MOV (SP)+,R1
+476:    TST (SP)+
+500:    MOV (SP)+,R0
+502:    RTI
+504:    MOV 2(SP),R1
+510:    MFPS -(SP)
+512:    MOV R2,-(SP)
+514:    MOV #340,-(SP)
+520:    MTPS (SP)+
+522:    MOV 2(R1),R2
+526:    BEQ 616
+530:    MOVB (R2)+,R0
+532:    BIC #177400,R0
+536:    MOV R2,2(R1)
+542:    DEC (R1)+
+544:    BNE 554
+546:    CLR (R1)+
+550:    CLR (R1)+
+552:    BR 572
+554:    BIT #7,R2
+560:    BNE 610
+562:    MOV 177770(R2),(R1)
+566:    ADD #2,(R1)
+572:    DEC R2
+574:    BIC #7,R2
+600:    MOV 25770,(R2)
+```
+
+Decompile (start) of ```lsx```:
+```shell
+         File: lsx
+         Type: FMAGIC (0407) non-relocatable
+Section .text: 10740 bytes
+Section .data: 516 bytes
+ Section .bss: 4346 bytes
+ Symbol table: 0 names (0 bytes)
+Entry address: 02000
+
+Disassembly of section .text:
+002000 000417                   br      02040 <.text+040>
+002002 000004                   iot
+002004 000270                   sen
+002006 000340                   swab    -(r0)
+002010 000270                   sen
+002012 000341                   swab    -(r1)
+002014 000270                   sen
+002016 000342                   swab    -(r2)
+002020 000270                   sen
+002022 000343                   swab    -(r3)
+002024 000270                   sen
+002026 000344                   swab    -(r4)
+002030 000270                   sen
+002032 000345                   swab    -(r5)
+002034 000270                   sen
+002036 000346                   swab    -(sp)
+002040 000167 001514            jmp     03560 <.text+01560>
+002044 000167 000070            jmp     02140 <.text+0140>
+002050 000000                   halt
+002052 000000                   halt
+002054 000000                   halt
+002056 000000                   halt
+002060 000110                   jmp     (r0)
+002062 000340                   swab    -(r0)
+002064 000116                   jmp     (sp)
+002066 000340                   swab    -(r0)
+002070 000000                   halt
+002072 000000                   halt
+002074 000000                   halt
+002076 000000                   halt
+002100 000124                   jmp     (r4)+
+...
+```
+
+## Status
+So why the code is loaded to 0 instead of 02000.
+Have to analyze this.
