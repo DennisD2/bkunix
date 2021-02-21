@@ -1,30 +1,10 @@
 # Debugging the bootstrap
-
-The text below explains what I needed to do to set up the bootrap code.
-I had an issue with wrong block numbers to load for secondary boot
-sectors. After fixing that, the boot process came up to the point where kernel
-```lsx``` would be loaded. 
-
-So I keep the text below only for historical purpose, because it also shows how 
-to trace problems with simh debugging feature.
-
 After a root disk has been created that contains all
 parts of the two-staged boot process, I could start
-the boot process but it immediately stops with an HALT
-instruction.
+the boot process.
 
-New root disk
-is in file ```newroot.dsk```. For now, it contains only
-a empty valid file system and the boot sectors filled.
 
-simh initialization file ```newlsx.ini``` for debugging the bootstrap:
-```
-at rx0 newroot.dsk
-set cpu 48k
-boot rx0
-```
-
-Execution with
+Execution if newroot.dsk file with
 ```bash
 ~/pdp11/simh/simh-master/BIN/pdp11 newlsx.ini
 ```
@@ -269,8 +249,7 @@ rxboot:
 
 (Bootsector file 2 is now in ```boot2``` as regular file on disk)
 
-Content of simh after ```lsx``` was loaded (so bootsector2 code mostly worked.
-But the code is loaded to 0 instead of 02000.
+Content of simh after ```lsx``` was loaded, so bootsector2 code worked.
 
 ```shell
 sim> ex -m 0-600
@@ -480,5 +459,29 @@ Disassembly of section .text:
 ```
 
 ## Status
-So why the code is loaded to 0 instead of 02000.
-Have to analyze this.
+lsx unix kernel is loaded and started.
+With debugging simh I found that the tty loop is running (waiting for input).
+But the tty does not output the shell prompt '#' as the original boot disk does.
+It also does not get character input.
+
+By setting a breakpoint to 1352, we can interrupt the input loop when pressing
+a key. This works with old disk, but does not work with my newly created disk.
+
+I suppose there is something wrong in the layers kernel -> tty driver code -> 
+simh 'hardware' layer. This needs to be analyzed next.
+
+```bash
+> ~/pdp11/simh/simh-master/BIN/pdp11 newlsx.ini
+
+PDP-11 simulator V4.0-0 Current        git commit id: d5cc3406
+/home/dennis/src/lsxunix/0_pavl_zacharys_garage/extracted-disks/root/newlsx.ini-1> at rx0 newroot.dsk
+RX: buffering file in memory
+/home/dennis/src/lsxunix/0_pavl_zacharys_garage/extracted-disks/root/newlsx.ini-2> at rx1 usr.dsk
+RX: buffering file in memory
+
+rx boot:lsx
+
+[results in endless loop, entered CRTL-e here]
+
+Simulation stopped, PC: 001350 (MTPS (SP)+)
+```

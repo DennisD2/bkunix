@@ -3,7 +3,7 @@ BASEDIR=$HOME/src/lsxunix
 FSUTIL="$BASEDIR/fsutil/lsx-util"
 #FSUTIL="$BASEDIR/fsutil/lsx-util -v -v -v"
 
-cd extracted-disks/root
+cd $BASEDIR/0_pavl_zacharys_garage/extracted-disks/root
 
 #OLD ${FSUTIL} -n -s256000 -bsys/boot1 -Bsys/boot2lo root.dsk
 
@@ -25,11 +25,12 @@ ${FSUTIL} -a newroot.dsk bin/ bin/sh bin/ls bin/cp bin/date bin/mkdir \
     bin/as bin/cc bin/check bin/db bin/ld bin/load bin/ls bin/reloc bin/sh bin/size \
     bin/strip #bin/sync bin/echo bin/cal bin/cat bin/ln bin/wc bin/pwd bin/df bin/mount bin/umount
 ${FSUTIL} -a newroot.dsk lib/ lib/as2 lib/c0 lib/c1 lib/c2 lib/crt0.o lib/liba.a lib/libc.a
-# OLD ${FSUTIL} -a newroot.dsk dev/ dev/tty8!c0:0 dev/fd0!b0:0 dev/fd1!b0:1
+${FSUTIL} -a newroot.dsk dev/ dev/tty8!c0:0 dev/fd0!b0:0 dev/fd1!b0:1
 ${FSUTIL} -c newroot.dsk
 ${FSUTIL} -v newroot.dsk
 # Dump octal dump, for documentation purpose
 od -o newroot.dsk >newroot.odo
+echo "root.dsk created in: " `pwd`
 
 echo "Please do not forget to fix block numbers of secondary boot sectors in primary sector table!"
 exit 0

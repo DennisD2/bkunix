@@ -1309,7 +1309,6 @@ Now, the 5 secondary bootsectors need to be patched at addresses 0152-162
 * From 0-21 to 2-E
 * From 0-24 to 2-11 (hex!)
 
-
 Having done this, the boot disk is *bootable*.
 Of course there is no UNIX on the root disk, but the bootstrap
 should come to the output line:
@@ -1317,10 +1316,23 @@ should come to the output line:
 rx boot:
 ``````
 
-Continuation of this story can be found [here](bootstrap.md).
-
 TODO: all sector numbers are +1 higher than I had expected.
 So my calculation hw address on disk <-> track , sector need to be analyzed and fixed.
 
-# cut of 16 byte header from bootsector files
+### cut of 16 byte header from bootsector files
 dd bs=1 skip=16 if=new_rxboot2 of=new_rxboot2.bin
+
+# Skript to create a boot disk
+In directory ```0_pavl_zacharys_garage```, script ```create-new-root.sh```.
+It creates the new root named ```newroot.dsk``` in extracted-disks/root. 
+
+Execution of this with simh with file ```newlsx.ini```:
+```
+at rx0 newroot.dsk
+at rx1 usr.dsk
+set cpu 48k
+boot rx0
+```
+
+Continuation of this story can be found [here](bootstrap.md).
+
