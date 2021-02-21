@@ -27,7 +27,7 @@
 * Hints on Testing a Dead PDP-11 - http://www.psych.usyd.edu.au/pdp-11/hints.html
 * Number conversion online - https://tools.piex.at/zahlen-umrechner/
 
-## SIMH and other simultors
+## SIMH and other simulators
 * SIMH - https://github.com/simh/simh
 * SIMH doc - http://simh.trailing-edge.com/pdf/simh_doc.pdf  
 * PDP11 simulators in JavaScript - https://www.pcjs.org/machines/dec/pdp11/1170/
